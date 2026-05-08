@@ -1,0 +1,219 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12pt; color: #000; margin: 0; padding: 0; }
+  .page { padding: 40px 60px; }
+  .header { border-bottom: 2px solid #003366; padding-bottom: 12px; margin-bottom: 24px; }
+  .header .company { font-size: 18pt; font-weight: bold; color: #003366; }
+  .header .division { font-size: 11pt; color: #555; }
+  .date { margin-bottom: 20px; }
+  .addressee { margin-bottom: 20px; line-height: 1.6; }
+  .subject { font-weight: bold; margin-bottom: 20px; text-decoration: underline; }
+  .body { line-height: 1.8; margin-bottom: 16px; }
+  .terms { margin: 20px 0; }
+  .terms li { margin-bottom: 10px; line-height: 1.6; }
+  .highlight { font-weight: bold; text-decoration: underline; }
+  .footer { margin-top: 40px; }
+  .signature-block { margin-top: 60px; }
+  .declaration { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; font-size: 10pt; }
+  .declaration-fields { display: flex; justify-content: space-between; margin-top: 40px; }
+  .field-label { border-top: 1px solid #000; padding-top: 4px; min-width: 180px; font-size: 10pt; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="company">{{ company_name }}</div>
+    <div class="division">{{ company_division }} Division</div>
+  </div>
+
+  <div class="date">{{ date }}</div>
+
+  <div class="addressee">
+    {{ candidate_name }}<br/>
+    {{ institute_name }}<br/>
+    {{ location_address }}
+  </div>
+
+  <div class="subject">Sub: Regarding your application for Internship with {{ company_name }}</div>
+
+  <div class="body">
+    Dear {{ candidate_name.split()[0] if candidate_name else 'Candidate' }},
+  </div>
+
+  <div class="body">
+    This is in regard to your request letter for internship with {{ company_name }} at
+    <strong>{{ location }}</strong>. We are pleased to inform you that you have been accepted
+    as an Intern for a period of {{ duration_weeks }} weeks starting from
+    <span class="highlight">{{ start_date }} to {{ end_date }}</span>.
+  </div>
+
+  <div class="body">
+    During the Internship you shall be bound by all terms and conditions attached in
+    Annexure A and Annexure B with this letter. You shall further be bound by all such
+    internal policies of {{ company_name }} and such changes as may be informed to you
+    from time to time.
+  </div>
+
+  <div class="body">
+    <em><span class="highlight">Do note that this is not an employment offer.</span></em>
+  </div>
+
+  <div class="body">The following additional terms &amp; conditions will be applicable to you during the Internship:</div>
+
+  <ul class="terms">
+    <li>You will Work from office for the Project assigned to you.</li>
+    <li>You may have to Visit the customers / vendors, based on the requirement of the Project.</li>
+    <li>You will be paid a Stipend of <span class="highlight">Rs {{ stipend_amount }}/- per month</span>, inclusive of all taxes.</li>
+    <li>If there is a requirement for you to travel to complete your Project, {{ company_name }} will reimburse the travel expenses as per the original bills and in accordance with the travel policy of {{ company_name }}. Any travel during the term of your Internship shall be arranged for by you. {{ company_name }} shall not be held responsible in case of any untoward event / incident during travel.</li>
+    <li>You shall arrange for your own accommodation during the Internship tenure.</li>
+    <li>The certificate for the project completion will be issued on the submission of the project report to the undersigned. Please take note that this internship is permitted only as it is a part of the curriculum. After the completion of internship, {{ company_name }} is not liable to offer the student any type of employment.</li>
+    <li>This engagement is subject to you signing Annexure A and Annexure B attached with this letter and returning a copy of the same to us.</li>
+  </ul>
+
+  <div class="body">Please countersign the duplicate copy of this offer letter and return to us as a token of your acceptance.</div>
+
+  <div class="body">Yours faithfully,</div>
+
+  <div class="signature-block">
+    <br/><br/>
+    <strong>{{ hr_head_name }}</strong><br/>
+    {{ hr_head_title }}<br/>
+    {{ company_division }}
+  </div>
+
+  <div class="body" style="margin-top: 20px;">
+    Encl: (i) Annexure A: General terms and conditions<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ii) Annexure B: Declaration and indemnity
+  </div>
+
+  <div class="declaration">
+    <strong>DECLARATION</strong><br/><br/>
+    I hereby declare and affirm that I have carefully studied and understood the terms and
+    conditions of my internship herein above detailed and specifically mentioned in Annexure A
+    and Annexure B. I accept the said internship and I hereby undertake to abide myself of
+    the said terms and conditions.
+
+    <div class="declaration-fields">
+      <span class="field-label">Place:</span>
+      <span class="field-label">Date:</span>
+      <span class="field-label">Name of the University:</span>
+      <span class="field-label">Signature</span>
+    </div>
+  </div>
+</div>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12pt; color: #000; margin: 0; padding: 0; }
+  .page { padding: 40px 60px; }
+  .header { border-bottom: 2px solid #003366; padding-bottom: 12px; margin-bottom: 24px; }
+  .header .company { font-size: 18pt; font-weight: bold; color: #003366; }
+  .header .division { font-size: 11pt; color: #555; }
+  .date { margin-bottom: 20px; }
+  .addressee { margin-bottom: 20px; line-height: 1.6; }
+  .subject { font-weight: bold; margin-bottom: 20px; text-decoration: underline; }
+  .body { line-height: 1.8; margin-bottom: 16px; }
+  .terms { margin: 20px 0; }
+  .terms li { margin-bottom: 10px; line-height: 1.6; }
+  .highlight { font-weight: bold; text-decoration: underline; }
+  .footer { margin-top: 40px; }
+  .signature-block { margin-top: 60px; }
+  .declaration { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; font-size: 10pt; }
+  .declaration-fields { display: flex; justify-content: space-between; margin-top: 40px; }
+  .field-label { border-top: 1px solid #000; padding-top: 4px; min-width: 180px; font-size: 10pt; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="company">{{ company_name }}</div>
+    <div class="division">{{ company_division }} Division</div>
+  </div>
+
+  <div class="date">{{ date }}</div>
+
+  <div class="addressee">
+    {{ candidate_salutation }} {{ candidate_name }}<br/>
+    {{ institute_name }}<br/>
+    {{ location_address | replace('\n', '<br/>') | safe }}
+  </div>
+
+  <div class="subject">Sub: Regarding your application for Internship with {{ company_name }}</div>
+
+  <div class="body">
+    Dear {{ first_name }},
+  </div>
+
+  <div class="body">
+    This is in regard to your request letter for internship with {{ company_name }} at
+    <strong>{{ location }}</strong>. We are pleased to inform you that you have been accepted
+    as an Intern for a period of {{ duration_weeks }} weeks starting from
+    <span class="highlight">{{ start_date }} to {{ end_date }}</span>.
+  </div>
+
+  <div class="body">
+    During the Internship you shall be bound by all terms and conditions attached in
+    Annexure A and Annexure B with this letter. You shall further be bound by all such
+    internal policies of {{ company_name }} and such changes as may be informed to you
+    from time to time.
+  </div>
+
+  <div class="body">
+    <em><span class="highlight">Do note that this is not an employment offer.</span></em>
+  </div>
+
+  <div class="body">The following additional terms &amp; conditions will be applicable to you during the Internship:</div>
+
+  <ul class="terms">
+    <li>You will Work from office for the Project assigned to you.</li>
+    <li>You may have to Visit the customers / vendors, based on the requirement of the Project.</li>
+    {% if has_stipend %}
+    <li>You will be paid a Stipend of <span class="highlight">Rs {{ stipend_amount }}/- per month</span>, inclusive of all taxes.</li>
+    {% endif %}
+    <li>If there is a requirement for you to travel to complete your Project, {{ company_name }} will reimburse the travel expenses as per the original bills and in accordance with the travel policy of {{ company_name }}. Any travel during the term of your Internship shall be arranged for by you. {{ company_name }} shall not be held responsible in case of any untoward event / incident during travel.</li>
+    <li>You shall arrange for your own accommodation during the Internship tenure.</li>
+    <li>The certificate for the project completion will be issued on the submission of the project report to the undersigned. Please take note that this internship is permitted only as it is a part of the curriculum. After the completion of internship, {{ company_name }} is not liable to offer the student any type of employment.</li>
+    <li>This engagement is subject to you signing Annexure A and Annexure B attached with this letter and returning a copy of the same to us.</li>
+  </ul>
+
+  <div class="body">Please countersign the duplicate copy of this offer letter and return to us as a token of your acceptance.</div>
+
+  <div class="body">Yours faithfully,</div>
+
+  <div class="signature-block">
+    <br/><br/>
+    <strong>{{ hr_head_name }}</strong><br/>
+    {{ hr_head_title }}<br/>
+    {{ company_division }}
+  </div>
+
+  <div class="body" style="margin-top: 20px;">
+    Encl: (i) Annexure A: General terms and conditions<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ii) Annexure B: Declaration and indemnity
+  </div>
+
+  <div class="declaration">
+    <strong>DECLARATION</strong><br/><br/>
+    I hereby declare and affirm that I have carefully studied and understood the terms and
+    conditions of my internship herein above detailed and specifically mentioned in Annexure A
+    and Annexure B. I accept the said internship and I hereby undertake to abide myself of
+    the said terms and conditions.
+
+    <div class="declaration-fields">
+      <span class="field-label">Place:</span>
+      <span class="field-label">Date:</span>
+      <span class="field-label">Name of the University:</span>
+      <span class="field-label">Signature</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

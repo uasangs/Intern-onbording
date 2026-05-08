@@ -1,0 +1,155 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12pt; color: #000; margin: 0; padding: 0; }
+  .page { padding: 40px 60px; min-height: 297mm; position: relative; }
+  .header { display: flex; align-items: center; border-bottom: 2px solid #003366; padding-bottom: 16px; margin-bottom: 30px; gap: 20px; }
+  .logo-placeholder { width: 60px; height: 60px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #999; }
+  .company-block .name { font-size: 18pt; font-weight: bold; color: #003366; }
+  .company-block .division { font-size: 11pt; color: #555; }
+  .date { margin-bottom: 24px; font-weight: bold; }
+  .to { margin-bottom: 16px; font-weight: bold; text-decoration: underline; }
+  .body { line-height: 1.8; margin-bottom: 14px; }
+  .body strong { font-weight: bold; }
+  .signature-block { margin-top: 50px; }
+  .signatory { font-weight: bold; }
+  .footer { position: absolute; bottom: 20px; left: 0; right: 0; padding: 10px 60px; border-top: 1px solid #ccc; font-size: 8pt; color: #555; text-align: center; line-height: 1.6; }
+  .sensitivity { font-size: 9pt; color: #777; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="logo-placeholder">LOGO</div>
+    <div class="company-block">
+      <div class="name">{{ company_name }}</div>
+      <div class="division">{{ company_division }}</div>
+    </div>
+  </div>
+
+  <div class="date">{{ issue_date }}</div>
+
+  <div class="to">To whomsoever it may concern</div>
+
+  <div class="body">
+    This is to certify that <strong>{{ candidate_salutation }} {{ candidate_name }}</strong>,
+    a student of {{ institute_name }} has successfully completed {{ candidate_salutation == 'Mr.' and 'his' or 'her' }}
+    Internship at {{ company_division }} ({{ company_name }}), for the period of
+    {{ duration_weeks }} weeks starting from {{ start_date }} to {{ end_date }}.
+  </div>
+
+  <div class="body">
+    During {{ candidate_salutation == 'Mr.' and 'his' or 'her' }} tenure with us as Intern
+    {{ candidate_salutation == 'Mr.' and 'his' or 'her' }} conduct was <strong>{{ conduct_remark }}</strong>.
+  </div>
+
+  <div class="body">
+    The project undertaken was <strong>"{{ project_title }}"</strong>
+    under the guidance of <strong>{{ guide_names }}</strong>.
+  </div>
+
+  <div class="body">
+    We wish {{ candidate_salutation == 'Mr.' and 'him' or 'her' }} all the best in
+    {{ candidate_salutation == 'Mr.' and 'his' or 'her' }} future endeavor.
+  </div>
+
+  <div class="body">For {{ company_name }}</div>
+
+  <div class="signature-block">
+    <br/><br/>
+    <div class="signatory">{{ hr_head_name }}</div>
+    <strong>{{ hr_head_title }}</strong><br/>
+    <strong>{{ company_division }}</strong>
+  </div>
+
+  <div class="footer">
+    <div class="sensitivity">Sensitivity: General</div>
+    {{ company_name }}<br/>
+    {{ company_address }}<br/>
+    E: {{ company_email }} | W: {{ company_website }} | CIN: {{ company_cin }}<br/>
+    Regd. Office: P.O. Birlagram, Nagda – 456 331 (M.P.)
+  </div>
+</div>
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12pt; color: #000; margin: 0; padding: 0; }
+  .page { padding: 40px 60px; min-height: 297mm; position: relative; }
+  .header { display: flex; align-items: center; border-bottom: 2px solid #003366; padding-bottom: 16px; margin-bottom: 30px; gap: 20px; }
+  .logo-placeholder { width: 60px; height: 60px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #999; }
+  .company-block .name { font-size: 18pt; font-weight: bold; color: #003366; }
+  .company-block .division { font-size: 11pt; color: #555; }
+  .date { margin-bottom: 24px; font-weight: bold; }
+  .to { margin-bottom: 16px; font-weight: bold; text-decoration: underline; }
+  .body { line-height: 1.8; margin-bottom: 14px; }
+  .body strong { font-weight: bold; }
+  .signature-block { margin-top: 50px; }
+  .signatory { font-weight: bold; }
+  .footer { position: absolute; bottom: 20px; left: 0; right: 0; padding: 10px 60px; border-top: 1px solid #ccc; font-size: 8pt; color: #555; text-align: center; line-height: 1.6; }
+  .sensitivity { font-size: 9pt; color: #777; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="logo-placeholder">LOGO</div>
+    <div class="company-block">
+      <div class="name">{{ company_name }}</div>
+      <div class="division">{{ company_division }}</div>
+    </div>
+  </div>
+
+  <div class="date">{{ issue_date }}</div>
+
+  <div class="to">To whomsoever it may concern</div>
+
+  <div class="body">
+    This is to certify that <strong>{{ candidate_salutation }} {{ candidate_name }}</strong>,
+    a student of {{ institute_name }} has successfully completed {{ pronoun }}
+    Internship at {{ company_division }} ({{ company_name }}), for the period of
+    {{ duration_weeks }} weeks starting from {{ start_date }} to {{ end_date }}.
+  </div>
+
+  <div class="body">
+    During {{ pronoun }} tenure with us as Intern
+    {{ pronoun }} conduct was <strong>{{ conduct_remark }}</strong>.
+  </div>
+
+  <div class="body">
+    The project undertaken was <strong>"{{ project_title }}"</strong>
+    under the guidance of <strong>{{ guide_names }}</strong>.
+  </div>
+
+  <div class="body">
+    We wish {{ pronoun_obj }} all the best in
+    {{ pronoun }} future endeavor.
+  </div>
+
+  <div class="body">For {{ company_name }}</div>
+
+  <div class="signature-block">
+    <br/><br/>
+    <div class="signatory">{{ hr_head_name }}</div>
+    <strong>{{ hr_head_title }}</strong><br/>
+    <strong>{{ company_division }}</strong>
+  </div>
+
+  <div class="footer">
+    <div class="sensitivity">Sensitivity: General</div>
+    {{ company_name }}<br/>
+    {{ company_address }}<br/>
+    E: {{ company_email }} | W: {{ company_website }} | CIN: {{ company_cin }}<br/>
+    Regd. Office: P.O. Birlagram, Nagda – 456 331 (M.P.)
+  </div>
+</div>
+</body>
+</html>
