@@ -110,8 +110,8 @@ export default function InternList() {
                         {intern.location}
                       </span>
                     </td>
-                    <td className="table-td text-xs">{format(new Date(intern.start_date), 'dd MMM yy')}</td>
-                    <td className="table-td text-xs">{format(new Date(intern.end_date), 'dd MMM yy')}</td>
+                    <td className="table-td text-xs">{format(new Date(intern.start_date), 'dd MM yy')}</td>
+                    <td className="table-td text-xs">{format(new Date(intern.end_date), 'dd MM yy')}</td>
                     <td className="table-td text-xs">₹{parseInt(intern.stipend_amount).toLocaleString()}</td>
                     <td className="table-td"><StatusBadge status={intern.status} /></td>
                     <td className="table-td text-center">

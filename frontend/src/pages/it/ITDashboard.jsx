@@ -119,8 +119,8 @@ export default function ITDashboard() {
                         </span>
                       </td>
                       <td className="table-td text-xs text-slate-500">
-                        <p>{intern?.start_date ? format(new Date(intern.start_date), 'dd MMM yy') : '—'}</p>
-                        <p>{intern?.end_date   ? format(new Date(intern.end_date),   'dd MMM yy') : '—'}</p>
+                        <p>{intern?.start_date ? format(new Date(intern.start_date), 'dd/MM/yy') : '—'}</p>
+                        <p>{intern?.end_date   ? format(new Date(intern.end_date),   'dd/MM/yy') : '—'}</p>
                       </td>
                       <td className="table-td">
                         <div className="flex flex-col gap-1">

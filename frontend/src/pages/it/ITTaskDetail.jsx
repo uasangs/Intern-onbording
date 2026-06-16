@@ -66,6 +66,11 @@ export default function ITTaskDetail() {
       setSaving(false)
       return
     }
+    if (payload.abg_email_id && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.abg_email_id)) {
+      toast.error('Please enter a valid email address')
+      setSaving(false)
+      return
+    }
 
     try {
       const res = await itApi.updateTask(taskId, payload)
@@ -121,7 +126,7 @@ export default function ITTaskDetail() {
           <div>
             <p className="text-sm font-semibold text-green-800">All provisioning complete</p>
             {task.completed_at && (
-              <p className="text-xs text-green-600">Completed on {format(new Date(task.completed_at), 'dd MMM yyyy, hh:mm a')}</p>
+              <p className="text-xs text-green-600">Completed on {format(new Date(task.completed_at + 'Z'), 'dd/MM/yyyy, hh:mm a')}</p>
             )}
           </div>
         </div>
@@ -190,8 +195,8 @@ export default function ITTaskDetail() {
           <div className="space-y-2.5">
             {[
               { label: 'Location',  value: intern?.location },
-              { label: 'Start Date', value: intern?.start_date ? format(new Date(intern.start_date), 'dd MMM yyyy') : '—' },
-              { label: 'End Date',   value: intern?.end_date   ? format(new Date(intern.end_date),   'dd MMM yyyy') : '—' },
+              { label: 'Start Date', value: intern?.start_date ? format(new Date(intern.start_date), 'dd/MM/yyyy') : '—' },
+              { label: 'End Date',   value: intern?.end_date   ? format(new Date(intern.end_date),   'dd/MM/yyyy') : '—' },
               { label: 'Duration',  value: intern?.duration_weeks ? `${intern.duration_weeks} weeks` : '—' },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
@@ -307,6 +312,9 @@ export default function ITTaskDetail() {
                 onChange={e => setForm(p => ({ ...p, abg_email_id: e.target.value }))}
                 disabled={isComplete}
               />
+              {form.abg_email_id && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.abg_email_id) && (
+                <p className="text-xs text-red-600 mt-1">Please enter a valid email address</p>
+              )}
               <p className="text-xs text-slate-400 mt-1">
                 Suggested format: {intern?.candidate_name
                   ? intern.candidate_name.toLowerCase().replace(/\s+/g, '.') + '@adityabirla.com'

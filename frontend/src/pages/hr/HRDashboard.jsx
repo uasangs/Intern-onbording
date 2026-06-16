@@ -51,7 +51,7 @@ export default function HRDashboard() {
         }
       />
       {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total Interns" value={stats.total_interns} icon={<Users className="w-5 h-5" />} color="indigo" />
           <StatCard label="Active" value={stats.active_interns} icon={<TrendingUp className="w-5 h-5" />} color="green" />
           <StatCard label="Pending Doc Review" value={stats.pending_docs_verification} icon={<FileCheck className="w-5 h-5" />} color="amber" />

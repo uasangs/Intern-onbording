@@ -5,6 +5,7 @@ from uuid import UUID
 from datetime import datetime
 
 from app.core.database import get_db
+from app.services.audit_service import log_action
 from app.core.security import require_accounts, require_it, require_manager, get_current_user
 from app.models.models import (
     HRUser, InternRecord, AccountsTask, StipendPayment,
@@ -127,6 +128,9 @@ def update_accounts_task(
 
     db.commit()
     db.refresh(task)
+    if payload.task_status == TaskStatus.completed:
+        log_action(db, str(task.intern_record_id), str(current_user.id), "ACCOUNTS_TASK_COMPLETED",
+                   entity_type="AccountsTask", entity_id=str(task.id))
     return task
 
 
@@ -309,6 +313,9 @@ def update_it_task(
 
     db.commit()
     db.refresh(task)
+    if task.task_status == TaskStatus.completed:
+        log_action(db, str(task.intern_record_id), str(current_user.id), "IT_TASK_COMPLETED",
+                   entity_type="ITTask", entity_id=str(task.id))
     return _build_it_task(task)
 
 
@@ -425,6 +432,9 @@ def submit_review(
 
     db.commit()
     db.refresh(review)
+    log_action(db, str(record.id), str(current_user.id), "MANAGER_REVIEW_SUBMITTED",
+               entity_type="ManagerReview", entity_id=str(review.id),
+               new_value=f"overall_rating={payload.overall_rating}/5, recommendation={payload.recommendation}")
     return review
 
 

@@ -155,8 +155,8 @@ export default function AccountsTaskDetail() {
             </div>
             {[
               { label: 'Duration', value: intern?.duration_weeks ? `${intern.duration_weeks} weeks` : '—' },
-              { label: 'Start Date', value: intern?.start_date ? format(new Date(intern.start_date), 'dd MMM yyyy') : '—' },
-              { label: 'End Date', value: intern?.end_date ? format(new Date(intern.end_date), 'dd MMM yyyy') : '—' },
+              { label: 'Start Date', value: intern?.start_date ? format(new Date(intern.start_date), 'dd/MM/yyyy') : '—' },
+              { label: 'End Date', value: intern?.end_date ? format(new Date(intern.end_date), 'dd/MM/yyyy') : '—' },
               { label: 'Frequency', value: intern?.payment_frequency || 'Monthly' },
               { label: 'Notes from HR', value: intern?.notes_for_accounts },
             ].map(({ label, value }) => (
@@ -233,7 +233,7 @@ export default function AccountsTaskDetail() {
                 Vendor setup completed
                 {task.completed_at && (
                   <span className="text-slate-400 font-normal text-xs">
-                    on {format(new Date(task.completed_at), 'dd MMM yyyy')}
+                    on {format(new Date(task.completed_at + 'Z'), 'dd/MM/yyyy')}
                   </span>
                 )}
               </div>
@@ -375,7 +375,7 @@ export default function AccountsTaskDetail() {
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                     <td className="table-td font-medium">{p.month_year}</td>
                     <td className="table-td text-xs">
-                      {p.payment_date ? format(new Date(p.payment_date), 'dd MMM yyyy') : '—'}
+                      {p.payment_date ? format(new Date(p.payment_date), 'dd/MM/yyyy') : '—'}
                     </td>
                     <td className="table-td">
                       <span className={`font-bold ${p.amount !== stipendAmount ? 'text-amber-600' : 'text-slate-900'}`}>

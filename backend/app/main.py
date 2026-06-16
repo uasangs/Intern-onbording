@@ -320,11 +320,22 @@ os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 for folder in ["documents", "offer_letters", "certificates"]:
     os.makedirs(os.path.join(settings.UPLOAD_DIR, folder), exist_ok=True)
 
+# Rate limiter setup
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="Intern Onboarding System — Grasim Industries Ltd. (MBDD / TRADC)",
 )
+
+# Register rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS — allow React dev server
 app.add_middleware(

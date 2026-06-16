@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import (
     Column, String, Boolean, DateTime, Date, Float,
-    Integer, Text, ForeignKey, Enum as SAEnum, JSON
+    Integer, Text, ForeignKey, Enum as SAEnum, JSON, LargeBinary
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -163,6 +163,7 @@ class InternRecord(Base):
     portal_token_last_accessed = Column(DateTime)
     portal_token_access_count = Column(Integer, default=0)
     portal_submitted_at = Column(DateTime)
+    self_review_enabled = Column(Boolean, default=False)  # HR enables intern self-review
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -255,9 +256,11 @@ class Document(Base):
     verified_by_id = Column(UUID(as_uuid=True), ForeignKey("hr_users.id"))
 
     doc_type = Column(SAEnum(DocType), nullable=False)
-    file_url = Column(String(500), nullable=False)
+    file_url = Column(String(500))
     file_name = Column(String(255))
     file_size_kb = Column(Integer)
+    file_data = Column(LargeBinary)
+    content_type = Column(String(100), default="application/pdf")
     status = Column(SAEnum(DocStatus), default=DocStatus.pending)
     rejection_reason = Column(Text)
 
@@ -277,7 +280,10 @@ class OfferLetter(Base):
     generated_by = Column(UUID(as_uuid=True), ForeignKey("hr_users.id"))
 
     pdf_url = Column(String(500))
-    is_hr_uploaded = Column(Boolean, default=False)  # True = HR uploaded manually
+    file_data = Column(LargeBinary)
+    file_name = Column(String(255))
+    content_type = Column(String(100), default="application/pdf")
+    is_hr_uploaded = Column(Boolean, default=False)
     status = Column(SAEnum(OfferStatus), default=OfferStatus.draft)
 
     sent_at = Column(DateTime)
@@ -484,6 +490,9 @@ class ExperienceCertificate(Base):
     issued_by = Column(UUID(as_uuid=True), ForeignKey("hr_users.id"))
 
     pdf_url = Column(String(500))
+    file_data = Column(LargeBinary)
+    file_name = Column(String(255))
+    content_type = Column(String(100), default="application/pdf")
     is_hr_uploaded = Column(Boolean, default=False)
     project_title = Column(String(500))
     guide_names = Column(String(500))

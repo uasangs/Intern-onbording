@@ -54,16 +54,14 @@ export default function PortalStep4Offer({ token, info, onBack, onAccepted }) {
           <p className="text-sm text-slate-600">Your offer letter from Grasim Industries Ltd.</p>
           <StatusBadge status={offer.status} />
         </div>
-        {offer.pdf_url && (
-          <a href={fileUrl(offer.pdf_url)} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 p-4 border-2 border-dashed border-indigo-200 rounded-lg hover:border-indigo-400 transition-colors mb-5 group">
-            <FileText className="w-6 h-6 text-indigo-500" />
-            <div>
-              <p className="text-sm font-medium text-indigo-700 group-hover:text-indigo-800">View Offer Letter PDF</p>
-              <p className="text-xs text-slate-400">Click to open in new tab</p>
-            </div>
-          </a>
-        )}
+        <a href={`/api/candidate/portal/${token}/offer-letter/download`} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-2 p-4 border-2 border-dashed border-indigo-200 rounded-lg hover:border-indigo-400 transition-colors mb-5 group">
+          <FileText className="w-6 h-6 text-indigo-500" />
+          <div>
+            <p className="text-sm font-medium text-indigo-700 group-hover:text-indigo-800">View / Download Offer Letter PDF</p>
+            <p className="text-xs text-slate-400">Click to open in new tab</p>
+          </div>
+        </a>
 
         {responded ? (
           <div className={`flex items-center gap-3 p-4 rounded-lg ${

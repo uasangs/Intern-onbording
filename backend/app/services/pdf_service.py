@@ -1,4 +1,3 @@
-
 # # """
 # # Offer Letter & Certificate generator using python-docx template substitution.
 
@@ -418,7 +417,7 @@
 # #                     zout.writestr(item, zin.read(item.filename))
 
 # #     os.replace(tmp_path, out_path)
-# #     return f"/uploads/certificates/{filename}"
+# #     return buffer.getvalue()  # Return bytes — stored in DB by caller
 
 
 
@@ -1126,16 +1125,13 @@ async def generate_offer_letter_pdf(record) -> str:
     hr_name, hr_div = _get_hr_signatory(record)
     co = settings.COMPANY_NAME
 
-    out_dir  = os.path.join(UPLOAD_DIR, "offer_letters")
-    _ensure_dir(out_dir)
-    filename = f"offer_{record.id}.pdf"
-    out_path = os.path.join(out_dir, filename)
-
+    import io
     S  = _styles()
     cb = _hf_callback(LOGO_PATH, hr_div or settings.COMPANY_DIVISION)
 
+    buffer = io.BytesIO()
     doc = SimpleDocTemplate(
-        out_path, pagesize=A4,
+        buffer, pagesize=A4,
         leftMargin=ML, rightMargin=MR,
         topMargin=MT, bottomMargin=MB,
         title=f"Offer Letter – {full_name}",
@@ -1295,91 +1291,171 @@ async def generate_offer_letter_pdf(record) -> str:
     story.append(sig_line_tbl)
 
     doc.build(story, onFirstPage=cb, onLaterPages=cb)
-    return f"/uploads/offer_letters/{filename}"
-
+    return buffer.getvalue()  # Return bytes — stored in DB by caller
 
 # ── Experience Certificate ────────────────────────────────────────────────────
-async def generate_certificate_pdf(record, payload) -> str:
-    cand = record.candidate
 
+def _cert_ordinal(n):
+    sfx = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{sfx}"
+
+def _cert_fmt_long(d):
+    return f"{_cert_ordinal(d.day)} {d.strftime('%B %Y')}" if d else ""
+
+def _cert_clear_and_set(paragraph, new_text):
+    """Replace all runs with a single run, preserving first run formatting."""
+    from docx.oxml.ns import qn
+    first_run = next((r for r in paragraph.runs if r.text.strip()), None)
+    p_elem = paragraph._element
+    for r in p_elem.findall(qn('w:r')):
+        p_elem.remove(r)
+    run = paragraph.add_run(new_text)
+    if first_run:
+        run.bold = first_run.bold
+        run.italic = first_run.italic
+        run.underline = first_run.underline
+        if first_run.font.name: run.font.name = first_run.font.name
+        if first_run.font.size: run.font.size = first_run.font.size
+
+def _cert_set_runs(paragraph, runs_data):
+    """Set paragraph with multiple runs. runs_data: list of (text, bold, italic, underline)"""
+    from docx.oxml.ns import qn
+    first_run = paragraph.runs[0] if paragraph.runs else None
+    font_name = first_run.font.name if first_run else None
+    font_size = first_run.font.size if first_run else None
+    p_elem = paragraph._element
+    for r in p_elem.findall(qn('w:r')):
+        p_elem.remove(r)
+    for text, bold, italic, underline in runs_data:
+        run = paragraph.add_run(text)
+        run.bold = bold; run.italic = italic; run.underline = underline
+        if font_name: run.font.name = font_name
+        if font_size: run.font.size = font_size
+
+async def generate_certificate_pdf(record, payload) -> bytes:
+    """
+    Generate experience certificate PDF using the official docx template.
+    Substitutes text only — all images (logo, signature) preserved from template.
+    Uses docx2pdf (MS Word on Windows) for pixel-perfect PDF conversion.
+    """
+    import io, tempfile, os
+    from docx import Document
+
+    template_path = os.path.join(TEMPLATES_DIR, "certificate_template.docx")
+    if not os.path.exists(template_path):
+        raise FileNotFoundError(f"Certificate template not found: {template_path}")
+
+    doc = Document(template_path)
+
+    cand = record.candidate
     full_name   = cand.full_name if cand else "Candidate"
     gender      = (cand.gender if cand else "male") or "male"
     sal         = "Mr." if gender.lower() == "male" else "Ms."
     pronoun     = "his" if gender.lower() == "male" else "her"
     pronoun_obj = "him" if gender.lower() == "male" else "her"
-
-    institute = cand.institute_name or ""
-    location  = record.location or ""
-    weeks     = record.duration_weeks or ""
-    conduct   = payload.conduct_remark.lower()
-    project   = payload.project_title
-    guides    = payload.guide_names
-
-    start_s = _fmt_long(record.start_date)
-    end_s   = _fmt_long(record.end_date)
-
-    issue_date = payload.issue_date
-    issue_s = (
-        issue_date.strftime("%B") + " " +
-        str(issue_date.day) + ", " +
-        str(issue_date.year)
-    )
+    institute   = cand.institute_name or ""
+    location    = record.location or ""
+    weeks       = record.duration_weeks or ""
+    conduct     = payload.conduct_remark.lower()
+    project     = payload.project_title
+    guides      = payload.guide_names
+    start_s     = _cert_fmt_long(record.start_date)
+    end_s       = _cert_fmt_long(record.end_date)
+    issue_date  = payload.issue_date
+    issue_s     = issue_date.strftime("%B") + " " + str(issue_date.day) + ", " + str(issue_date.year)
 
     hr_name, hr_div = _get_hr_signatory(record)
-    co = settings.COMPANY_NAME
 
-    out_dir  = os.path.join(UPLOAD_DIR, "certificates")
-    _ensure_dir(out_dir)
-    filename = f"cert_{record.id}.pdf"
-    out_path = os.path.join(out_dir, filename)
+    MONTHS = ["January","February","March","April","May","June",
+              "July","August","September","October","November","December"]
 
-    S  = _styles()
-    cb = _hf_callback(LOGO_PATH, hr_div or settings.COMPANY_DIVISION)
+    for para in doc.paragraphs:
+        text = para.text.strip()
 
-    doc = SimpleDocTemplate(
-        out_path, pagesize=A4,
-        leftMargin=ML, rightMargin=MR,
-        topMargin=MT, bottomMargin=MB,
-        title=f"Experience Certificate – {full_name}",
-    )
+        # Date line
+        if any(m in text for m in MONTHS) and len(text) < 25 and any(c.isdigit() for c in text):
+            _cert_clear_and_set(para, issue_s)
 
-    def sp(h=12): return Spacer(1, h)
-    story = []
+        # Certify paragraph
+        elif "This is to certify that" in text:
+            _cert_set_runs(para, [
+                ("This is to certify that ", False, False, False),
+                (f"{sal} {full_name}, ", True, False, False),
+                (f"a student of {institute} has successfully completed "
+                 f"{pronoun} Internship at {hr_div or location} (Grasim Industries Limited), "
+                 f"for the period of {weeks} weeks starting from {start_s} to {end_s}.",
+                 False, False, False),
+            ])
 
-    story.append(Paragraph(f"<b>{issue_s}</b>", S["n"]))
-    story.append(sp(12))
-    story.append(Paragraph("<b><u>To whomsoever it may concern</u></b>", S["n"]))
-    story.append(sp(12))
-    story.append(Paragraph(
-        f"This is to certify that <b>{sal} {full_name}</b>, a student of {institute} "
-        f"has successfully completed {pronoun} Internship at "
-        f"{hr_div or location} ({co}), for the period of {weeks} weeks starting "
-        f"from {start_s} to {end_s}.", S["n"]))
-    story.append(sp(12))
-    story.append(Paragraph(
-        f"During {pronoun} tenure with us as Intern {pronoun} conduct was "
-        f"<b>{conduct}</b>.", S["n"]))
-    story.append(sp(12))
-    story.append(Paragraph(
-        f"The project undertaken was <b>&#34;{project}&#34;</b> under the guidance "
-        f"of <b>{guides}</b>.", S["n"]))
-    story.append(sp(12))
-    story.append(Paragraph(
-        f"We wish {pronoun_obj} all the best in {pronoun} future endeavor.", S["n"]))
-    story.append(sp(6))
-    story.append(Paragraph(f"For {co}", S["n"]))
-    story.append(sp(6))
+        # Conduct paragraph
+        elif "During" in text and "tenure" in text and "conduct" in text:
+            _cert_set_runs(para, [
+                (f"During {pronoun} tenure with us as Intern {pronoun} conduct was ", False, False, False),
+                (conduct + ".", True, False, False),
+            ])
 
-    if os.path.exists(SIGNATURE_PATH):
-        sig = Image(SIGNATURE_PATH, width=SIG_W, height=SIG_H)
-        sig.hAlign = "LEFT"
-        story.append(sig)
-    else:
-        story.append(sp(SIG_H))
+        # Project paragraph
+        elif "project undertaken" in text:
+            _cert_set_runs(para, [
+                ("The project undertaken was ", False, False, False),
+                (f'"{project}" ', True, False, False),
+                ("under the guidance of ", False, False, False),
+                (guides + ".", True, False, False),
+            ])
 
-    story.append(Paragraph(f"<b>{hr_name}</b>", S["n"]))
-    story.append(Paragraph(f"<b>{settings.HR_HEAD_TITLE}</b>", S["n"]))
-    story.append(Paragraph(f"<b>{hr_div or settings.COMPANY_DIVISION}</b>", S["n"]))
+        # Closing — signature image is embedded in this paragraph, preserve image runs
+        elif "We wish" in text and "future endeavor" in text:
+            from docx.oxml.ns import qn
+            p_elem = para._element
+            # Only remove text runs, keep drawing/image runs
+            for r in p_elem.findall(qn('w:r')):
+                # Check if this run contains a drawing (image) — if so, keep it
+                if r.find(qn('w:drawing')) is None:
+                    p_elem.remove(r)
+            # Add text run at the beginning
+            import copy
+            new_run = para.add_run(
+                f"We wish {pronoun_obj} all the best in {pronoun} future endeavor. "
+                f"For Grasim Industries Ltd."
+            )
+            # Move the new run to before the image run
+            image_runs = [r for r in p_elem.findall(qn('w:r'))
+                         if r.find(qn('w:drawing')) is not None]
+            text_runs = [r for r in p_elem.findall(qn('w:r'))
+                        if r.find(qn('w:drawing')) is None]
+            if image_runs and text_runs:
+                # Insert text run before image run
+                p_elem.remove(text_runs[0])
+                p_elem.insert(list(p_elem).index(image_runs[0]), text_runs[0])
 
-    doc.build(story, onFirstPage=cb, onLaterPages=cb)
-    return f"/uploads/certificates/{filename}"
+        # Signatory name
+        elif text == "Sheba Banerjee":
+            _cert_clear_and_set(para, hr_name)
+
+        # Head HR + division
+        elif "Head" in text and "Human Resources" in text:
+            _cert_clear_and_set(para, f"Head \u2013 Human Resources {hr_div}")
+
+    # Save docx to temp file
+    with tempfile.NamedTemporaryFile(suffix='.docx', delete=False) as f:
+        doc.save(f)
+        docx_path = f.name
+
+    pdf_path = docx_path.replace('.docx', '.pdf')
+
+    try:
+        from docx2pdf import convert
+        convert(docx_path, pdf_path)
+        if os.path.exists(pdf_path):
+            with open(pdf_path, 'rb') as f:
+                return f.read()
+    finally:
+        if os.path.exists(docx_path):
+            os.unlink(docx_path)
+        if os.path.exists(pdf_path) and os.path.exists(pdf_path):
+            os.unlink(pdf_path)
+
+    # Fallback: return docx bytes (if MS Word not available)
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue()

@@ -39,25 +39,30 @@ export default function ManagerDashboard() {
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>
 
-  const active        = interns.filter(i => i.status === 'active')
-  const reviewPending = interns.filter(i => !i.review_submitted && ['active','review_pending'].includes(i.status))
-  const reviewed      = interns.filter(i => i.review_submitted)
-  const completed     = interns.filter(i => i.status === 'completed')
-  const urgent        = reviewPending.filter(i => differenceInDays(new Date(i.end_date), new Date()) <= 7)
+  // Show interns who have accepted the offer (status-based check)
+  const acceptedInterns = interns.filter(i =>
+    ['offer_accepted', 'active', 'review_pending', 'completed'].includes(i.status)
+  )
+
+  const active        = acceptedInterns.filter(i => i.status === 'active')
+  const reviewPending = acceptedInterns.filter(i => !i.review_submitted && ['active','review_pending'].includes(i.status))
+  const reviewed      = acceptedInterns.filter(i => i.review_submitted)
+  const completed     = acceptedInterns.filter(i => i.status === 'completed')
+  const urgent        = reviewPending.filter(i => differenceInDays(new Date(i.end_date), new Date()) <= 7 && (!i.review_due_date || new Date() >= new Date(i.review_due_date)))
 
   const filtered =
     filter === 'pending'   ? reviewPending :
     filter === 'reviewed'  ? reviewed :
     filter === 'completed' ? completed :
-    interns
+    acceptedInterns
 
   return (
     <div className="space-y-6">
       <PageHeader title="My Interns" subtitle="Evaluate and track interns reporting to you" />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Interns"    value={interns.length}        icon={<Users className="w-5 h-5" />}       color="indigo" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total Interns"    value={acceptedInterns.length}        icon={<Users className="w-5 h-5" />}       color="indigo" />
         <StatCard label="Active"           value={active.length}         icon={<Clock className="w-5 h-5" />}        color="green"  />
         <StatCard label="Review Pending"   value={reviewPending.length}  icon={<Star className="w-5 h-5" />}         color="amber"  />
         <StatCard label="Completed"        value={completed.length}      icon={<CheckCircle className="w-5 h-5" />}  color="slate"  />
@@ -99,7 +104,7 @@ export default function ManagerDashboard() {
       {/* Filter tabs */}
       <div className="flex gap-2 flex-wrap">
         {[
-          ['all', `All (${interns.length})`],
+          ['all', `All (${acceptedInterns.length})`],
           ['pending', `Pending Review (${reviewPending.length})`],
           ['reviewed', `Reviewed (${reviewed.length})`],
           ['completed', `Completed (${completed.length})`],
@@ -145,11 +150,16 @@ export default function ManagerDashboard() {
                 {filtered.map(intern => {
                   const needsReview = !intern.review_submitted && ['active','review_pending'].includes(intern.status)
                   const days = differenceInDays(new Date(intern.end_date), new Date())
+                  // b: Review locked until review_due_date is reached
+                  const reviewUnlocked = intern.review_due_date
+                    ? new Date() >= new Date(intern.review_due_date)
+                    : true
+                  const canFillReview = needsReview && reviewUnlocked
                   return (
                     <tr key={intern.id}
                       className={`hover:bg-slate-50 transition-colors
-                        ${needsReview && days <= 7 ? 'bg-red-50/30' :
-                          needsReview ? 'bg-amber-50/20' : ''}`}>
+                        ${canFillReview && days <= 7 ? 'bg-red-50/30' :
+                          canFillReview ? 'bg-amber-50/20' : ''}`}>
                       <td className="table-td">
                         <p className="font-semibold text-slate-900">{intern.candidate_name || '—'}</p>
                         <p className="text-xs text-slate-400">{intern.candidate_email}</p>
@@ -171,8 +181,8 @@ export default function ManagerDashboard() {
                         </span>
                       </td>
                       <td className="table-td text-xs text-slate-500">
-                        <p>{intern.start_date ? format(new Date(intern.start_date), 'dd MMM yy') : '—'}</p>
-                        <p>{intern.end_date   ? format(new Date(intern.end_date),   'dd MMM yy') : '—'}</p>
+                        <p>{intern.start_date ? format(new Date(intern.start_date), 'dd/MM/yy') : '—'}</p>
+                        <p>{intern.end_date   ? format(new Date(intern.end_date),   'dd/MM/yy') : '—'}</p>
                         {intern.duration_weeks && <p className="text-slate-400">{intern.duration_weeks}w</p>}
                       </td>
                       <td className="table-td">
@@ -184,19 +194,27 @@ export default function ManagerDashboard() {
                           <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
                             <CheckCircle className="w-3.5 h-3.5" />Done
                           </span>
-                        ) : (
+                        ) : reviewUnlocked ? (
                           <span className="inline-flex items-center gap-1 text-xs text-amber-600 font-medium">
                             <Clock className="w-3.5 h-3.5" />Pending
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
+                            <Clock className="w-3.5 h-3.5" />Locked until {format(new Date(intern.review_due_date), 'dd/MM/yyyy')}
                           </span>
                         )}
                       </td>
                       <td className="table-td">
-                        <Link
-                          to={`/manager/review/${intern.id}`}
-                          className={`text-xs font-medium whitespace-nowrap
-                            ${needsReview ? 'text-indigo-600 hover:text-indigo-700' : 'text-slate-400 hover:text-slate-600'}`}>
-                          {intern.review_submitted ? 'View Review →' : needsReview ? 'Fill Review →' : 'View →'}
-                        </Link>
+                        {intern.review_submitted || reviewUnlocked ? (
+                          <Link
+                            to={`/manager/review/${intern.id}`}
+                            className={`text-xs font-medium whitespace-nowrap
+                              ${canFillReview ? 'text-indigo-600 hover:text-indigo-700' : 'text-slate-400 hover:text-slate-600'}`}>
+                            {intern.review_submitted ? 'View Review →' : 'Fill Review →'}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-slate-300 font-medium whitespace-nowrap">Not yet available</span>
+                        )}
                       </td>
                     </tr>
                   )

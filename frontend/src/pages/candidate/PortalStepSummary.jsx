@@ -51,15 +51,15 @@ export default function PortalStepSummary({ info, onConfirm, onBack, token }) {
         <Field label="Department" value={info?.department} />
         <Field label="Location" value={info?.location} />
         <Field label="Stipend" value={info?.stipend_amount > 0 ? `₹${parseInt(info.stipend_amount).toLocaleString('en-IN')}/month` : 'Not specified'} />
-        <Field label="Start Date" value={info?.start_date ? format(new Date(info.start_date), 'dd MMM yyyy') : null} />
-        <Field label="End Date" value={info?.end_date ? format(new Date(info.end_date), 'dd MMM yyyy') : null} />
+        <Field label="Start Date" value={info?.start_date ? format(new Date(info.start_date), 'dd/MM/yyyy') : null} />
+        <Field label="End Date" value={info?.end_date ? format(new Date(info.end_date), 'dd/MM/yyyy') : null} />
       </Section>
 
       {/* Personal */}
       <Section title="Personal Details" icon={User}>
         <Field label="Full Name" value={info?.candidate_name} />
         <Field label="Gender" value={info?.gender} />
-        <Field label="Date of Birth" value={info?.dob} />
+        <Field label="Date of Birth" value={info?.dob ? format(new Date(info.dob), 'dd/MM/yyyy') : null} />
         <Field label="Mobile" value={info?.mobile} />
         <Field label="PAN Card" value={info?.pan_card_no} />
         <Field label="Aadhaar" value={info?.aadhaar_no} />
@@ -107,12 +107,18 @@ export default function PortalStepSummary({ info, onConfirm, onBack, token }) {
                     <p className="text-xs text-slate-400">{doc.file_name}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setPdfViewer({ label: doc.doc_type?.replace(/_/g, ' '), url: doc.file_url })}
-                  className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1 px-2.5 py-1 rounded-lg border border-indigo-200 hover:bg-indigo-50 transition-colors"
-                >
-                  <Eye className="w-3 h-3" />View
-                </button>
+                {doc.file_data_available ? (
+                  <a
+                    href={`/api/candidate/portal/${token}/document/${doc.id}/download`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1 px-2.5 py-1 rounded-lg border border-indigo-200 hover:bg-indigo-50 transition-colors"
+                  >
+                    <Eye className="w-3 h-3" />View
+                  </a>
+                ) : (
+                  <span className="text-xs text-amber-600 italic">Re-upload needed</span>
+                )}
               </div>
             ))
           )}

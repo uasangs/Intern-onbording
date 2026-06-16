@@ -82,12 +82,12 @@ function ReviewDisplay({ review, intern }) {
       {/* Candidate info */}
       {intern && (
         <SectionCard title="Candidate">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             {[
               ['Name', intern.candidate_name],
               ['Institute', intern.institute_name],
               ['Course', intern.course],
-              ['Period', intern.start_date ? `${format(new Date(intern.start_date),'dd MMM yy')} → ${format(new Date(intern.end_date),'dd MMM yy')}` : '—'],
+              ['Period', intern.start_date ? `${format(new Date(intern.start_date),'dd/MM/yy')} → ${format(new Date(intern.end_date),'dd/MM/yy')}` : '—'],
             ].map(([k,v]) => (
               <div key={k}><p className="text-xs text-slate-400">{k}</p><p className="font-medium text-slate-800">{v||'—'}</p></div>
             ))}
@@ -148,7 +148,6 @@ function ReviewDisplay({ review, intern }) {
           {[
             ['Project Submitted',    review.project_submission],
             ['Project Presented',    review.project_presentation],
-            ['Mgr Evaluation Done',  review.eval_from_mgr],
             ['Panel Evaluation Done',review.panel_evaluation],
           ].map(([label, done]) => (
             <div key={label} className={`flex items-center gap-2 p-3 rounded-lg border
@@ -163,7 +162,7 @@ function ReviewDisplay({ review, intern }) {
       </SectionCard>
 
       <p className="text-xs text-slate-400 text-center">
-        Submitted on {review.submitted_at ? format(new Date(review.submitted_at), 'dd MMM yyyy, hh:mm a') : '—'}
+        Submitted on {review.submitted_at ? format(new Date(review.submitted_at + 'Z'), 'dd/MM/yyyy, hh:mm a') : '—'}
       </p>
     </div>
   )
@@ -214,7 +213,7 @@ export default function ManagerReview() {
         overall_rating:       parseInt(data.overall_rating),
         feedback_text:        data.feedback_text,
         recommendation:       data.recommendation,
-        eval_from_mgr:        !!data.eval_from_mgr,
+        // eval_from_mgr:        !!data.eval_from_mgr,
         panel_evaluation:     !!data.panel_evaluation,
         project_submission:   !!data.project_submission,
         project_presentation: !!data.project_presentation,
@@ -229,7 +228,32 @@ export default function ManagerReview() {
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>
 
   // Show submitted review
-  if (existing?.submitted_at) return <ReviewDisplay review={existing} intern={intern} />
+  if (existing?.submitted_at + 'Z') return <ReviewDisplay review={existing} intern={intern} />
+
+  // b: Block review form if review_due_date not yet reached
+  const reviewUnlocked = intern?.review_due_date ? new Date() >= new Date(intern.review_due_date) : true
+
+  if (!reviewUnlocked) {
+    return (
+      <div className="max-w-3xl space-y-6">
+        <PageHeader
+          title={`Evaluate: ${intern?.candidate_name || intern?.candidate_email || 'Intern'}`}
+          subtitle={`${intern?.role_title || ''} · ${intern?.department || ''} · ${intern?.location || ''}`}
+        />
+        <div className="p-6 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-4">
+          <AlertCircle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-amber-800">Review Not Yet Available</p>
+            <p className="text-sm text-amber-700 mt-1">
+              The review form will be unlocked on{' '}
+              <strong>{format(new Date(intern.review_due_date), 'dd/MM/yyyy')}</strong>.
+              Please come back on or after that date to submit your evaluation.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const daysLeft = intern?.end_date ? differenceInDays(new Date(intern.end_date), new Date()) : null
 
@@ -260,7 +284,7 @@ export default function ManagerReview() {
       {intern && (
         <div className="card p-5">
           <p className="text-xs font-semibold text-slate-500 mb-3">Candidate You Are Evaluating</p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               ['Name',      intern.candidate_name],
               ['Email',     intern.candidate_email],
@@ -268,12 +292,12 @@ export default function ManagerReview() {
               ['Course',    intern.course],
               ['Role',      intern.role_title],
               ['Dept',      intern.department],
-              ['Start',     intern.start_date ? format(new Date(intern.start_date), 'dd MMM yyyy') : '—'],
-              ['End',       intern.end_date   ? format(new Date(intern.end_date),   'dd MMM yyyy') : '—'],
+              ['Start',     intern.start_date ? format(new Date(intern.start_date), 'dd/MM/yyyy') : '—'],
+              ['End',       intern.end_date   ? format(new Date(intern.end_date),   'dd/MM/yyyy') : '—'],
             ].map(([k, v]) => (
               <div key={k}>
                 <p className="text-xs text-slate-400">{k}</p>
-                <p className="text-sm font-medium text-slate-800 mt-0.5">{v || '—'}</p>
+                <p className="text-sm font-medium text-slate-800 mt-0.5 break-all">{v || '—'}</p>
               </div>
             ))}
           </div>
@@ -365,7 +389,6 @@ export default function ManagerReview() {
             {[
               ['project_submission',   'Project Report submitted'],
               ['project_presentation', 'Project Presentation given'],
-              ['eval_from_mgr',        'Evaluation from Manager done'],
               ['panel_evaluation',     'Panel Evaluation done'],
             ].map(([name, label]) => (
               <label key={name}

@@ -1,18 +1,15 @@
-import os
-import uuid
-import aiofiles
 from fastapi import UploadFile, HTTPException
 from app.core.config import settings
 
-# Documents must be PDF only
-PDF_ONLY = {"application/pdf"}
-
-# Other uploads (certificates, offer letters HR uploads) allow PDF only too
 ALLOWED_TYPES = {"application/pdf"}
+MAX_SIZE_BYTES = settings.MAX_FILE_SIZE_MB * 1024 * 1024
 
 
-async def save_upload(file: UploadFile, folder: str = "uploads") -> str:
-    # Enforce PDF only for all uploads
+async def read_upload(file: UploadFile) -> tuple[bytes, str, str]:
+    """
+    Read uploaded file and return (content_bytes, filename, content_type).
+    Validates type and size. Does NOT save to disk — caller stores in DB.
+    """
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400,
@@ -20,19 +17,21 @@ async def save_upload(file: UploadFile, folder: str = "uploads") -> str:
         )
 
     content = await file.read()
-    size_mb = len(content) / (1024 * 1024)
-    if size_mb > settings.MAX_FILE_SIZE_MB:
+
+    if len(content) > MAX_SIZE_BYTES:
+        size_mb = len(content) / (1024 * 1024)
         raise HTTPException(
             status_code=400,
             detail=f"File size {size_mb:.1f}MB exceeds the {settings.MAX_FILE_SIZE_MB}MB limit"
         )
 
-    filename = f"{uuid.uuid4()}.pdf"
-    out_dir = os.path.join(settings.UPLOAD_DIR, folder)
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, filename)
+    return content, file.filename, file.content_type
 
-    async with aiofiles.open(out_path, "wb") as f:
-        await f.write(content)
 
-    return f"/uploads/{folder}/{filename}"
+# Keep save_upload for backward compatibility but now returns None
+# (callers updated to use read_upload instead)
+async def save_upload(file: UploadFile, folder: str = "uploads") -> str:
+    """Deprecated — use read_upload() instead. Kept for compatibility."""
+    content, filename, content_type = await read_upload(file)
+    # Return a placeholder — callers should be updated to use read_upload
+    return f"/db-stored/{filename}"

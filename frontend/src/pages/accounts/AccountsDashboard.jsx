@@ -46,7 +46,7 @@ export default function AccountsDashboard() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Tasks" value={tasks.length} icon={<CreditCard className="w-5 h-5" />} color="indigo" />
         <StatCard label="Pending" value={pending} icon={<Clock className="w-5 h-5" />} color="amber" />
         <StatCard label="In Progress" value={inProgress} icon={<AlertCircle className="w-5 h-5" />} color="blue" />
@@ -126,9 +126,9 @@ export default function AccountsDashboard() {
                         <span className="text-xs text-slate-400 ml-1">/ mo</span>
                       </td>
                       <td className="table-td text-xs text-slate-500">
-                        {intern?.start_date ? format(new Date(intern.start_date), 'dd MMM yy') : '—'}
+                        {intern?.start_date ? format(new Date(intern.start_date), 'dd/MM/yy') : '—'}
                         {' → '}
-                        {intern?.end_date ? format(new Date(intern.end_date), 'dd MMM yy') : '—'}
+                        {intern?.end_date ? format(new Date(intern.end_date), 'dd/MM/yy') : '—'}
                       </td>
                       <td className="table-td text-xs">
                         {intern?.bank_name

@@ -145,7 +145,7 @@ export default function PortalLinkManager({ internId }) {
             <span className="text-xs text-slate-500">Last Sent</span>
           </div>
           <p className="text-xs font-semibold text-slate-700">
-            {portalStatus.sent_at ? format(toLocal(portalStatus.sent_at), 'dd MMM yy') : '—'}
+            {portalStatus.sent_at ? format(toLocal(portalStatus.sent_at), 'dd/MM/yy') : '—'}
           </p>
         </div>
         <div className="p-3 bg-slate-50 rounded-lg text-center">
@@ -154,7 +154,7 @@ export default function PortalLinkManager({ internId }) {
             <span className="text-xs text-slate-500">Last Accessed</span>
           </div>
           <p className="text-xs font-semibold text-slate-700">
-            {portalStatus.last_accessed ? format(toLocal(portalStatus.last_accessed), 'dd MMM yy, HH:mm') : 'Never'}
+            {portalStatus.last_accessed ? format(toLocal(portalStatus.last_accessed), 'dd/MM/yy, HH:mm') : 'Never'}
           </p>
         </div>
       </div>
@@ -165,14 +165,14 @@ export default function PortalLinkManager({ internId }) {
           <div className="flex justify-between">
             <span>Link expires</span>
             <span className="font-medium text-slate-700">
-              {format(toLocal(portalStatus.expires_at), 'dd MMM yyyy, HH:mm')}
+              {format(toLocal(portalStatus.expires_at), 'dd/MM/yyyy, HH:mm')}
             </span>
           </div>
         )}
         {portalStatus.revoked_at && (
           <div className="flex justify-between text-red-600">
             <span>Revoked at</span>
-            <span className="font-medium">{format(toLocal(portalStatus.revoked_at), 'dd MMM yyyy, HH:mm')}</span>
+            <span className="font-medium">{format(toLocal(portalStatus.revoked_at), 'dd/MM/yyyy, HH:mm')}</span>
           </div>
         )}
         <div className="flex justify-between">
