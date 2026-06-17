@@ -533,10 +533,19 @@ export default function InternDetail() {
             </button>
           )}
           {offer?.has_file && (
-            <a href={`/api/hr/offer-letter/${id}/download`} download="offer_letter.pdf" className="btn-secondary flex items-center gap-2">
-              <FileText className="w-4 h-4" />Download Offer Letter (.pdf)
-            </a>
-          )}
+  <button onClick={async () => {
+    try {
+      const res = await hrApi.downloadOffer(id)
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+      const a = document.createElement('a')
+      a.href = url; a.download = 'offer_letter.pdf'; a.click()
+      URL.revokeObjectURL(url)
+    } catch { toast.error('Failed to download offer letter') }
+  }} className="btn-secondary flex items-center gap-2">
+    <FileText className="w-4 h-4" />Download Offer Letter (.pdf)
+  </button>
+)}
+          
           {offer?.has_file && offer.status !== 'sent' && offer.status !== 'accepted' && (
             <button onClick={sendOffer} className="btn-primary flex items-center gap-2">
               <Send className="w-4 h-4" />Send to Candidate

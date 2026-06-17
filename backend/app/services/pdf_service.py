@@ -17,7 +17,7 @@ UPLOAD_DIR    = settings.UPLOAD_DIR
 TEMPLATES_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "pdf", "templates"
 )
-LOGO_PATH      = os.path.join(TEMPLATES_DIR, "grasim_logo.jpeg")
+LOGO_PATH      = os.path.join(TEMPLATES_DIR, "grasim_logo.jpg")
 SIGNATURE_PATH = os.path.join(TEMPLATES_DIR, "signature.png")
 
 # ── Page geometry (from docx sectPr twips ÷ 20 = pt) ─────────────────────────
