@@ -108,11 +108,13 @@ export default function InitiateIntern() {
   </p>
   <div className="grid grid-cols-2 gap-4">
     <Field label="Full Name" required error={errors.candidate_name?.message}>
-      <input className="input" placeholder="e.g. Niket Totala"
-        {...register('candidate_name', {
-          required: 'Full name is required',
-          minLength: { value: 2, message: 'Name must be at least 2 characters' },
-        })} />
+      <input className="input" placeholder="e.g. Abhishek Singh"
+  onKeyDown={onlyLetters}
+  {...register('candidate_name', {
+    required: 'Full name is required',
+    minLength: { value: 2, message: 'Name must be at least 2 characters' },
+    pattern: { value: /^[a-zA-Z\s]+$/, message: 'Name can only contain letters' },
+  })} />
     </Field>
     <Field label="Gender" required error={errors.candidate_gender?.message}>
       <select className="input" {...register('candidate_gender', {
@@ -125,10 +127,11 @@ export default function InitiateIntern() {
     </Field>
     <Field label="Mobile" required error={errors.candidate_mobile?.message}>
       <input className="input" type="tel" placeholder="e.g. 9876543210"
-        {...register('candidate_mobile', {
-          required: 'Mobile number is required',
-          pattern: { value: /^[6-9]\d{9}$/, message: 'Enter valid 10-digit Indian mobile number' },
-        })} />
+  onKeyDown={combine(onlyDigits, maxLen(10))}
+  {...register('candidate_mobile', {
+    required: 'Mobile number is required',
+    pattern: { value: /^[6-9]\d{9}$/, message: 'Enter valid 10-digit Indian mobile number' },
+  })} />
     </Field>
     <Field label="Institute Name" required error={errors.institute_name?.message}>
       <input className="input" placeholder="e.g. VJTI Mumbai"
