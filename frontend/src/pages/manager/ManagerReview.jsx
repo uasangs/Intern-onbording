@@ -228,7 +228,7 @@ export default function ManagerReview() {
   if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>
 
   // Show submitted review
-  if (existing?.submitted_at + 'Z') return <ReviewDisplay review={existing} intern={intern} />
+  if (existing?.submitted_at) return <ReviewDisplay review={existing} intern={intern} />
 
   // b: Block review form if review_due_date not yet reached
   const reviewUnlocked = intern?.review_due_date ? new Date() >= new Date(intern.review_due_date) : true

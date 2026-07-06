@@ -20,7 +20,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       const url = err.config?.url || ''
       // Candidate portal uses token-based auth — never redirect to login
-      const isCandidatePortal = url.includes('/candidate/portal/')
+      const isCandidatePortal = url.includes('/candidate/portal/') || url.includes('/hr/masters') || url.includes('/hr/masters')
       if (!isCandidatePortal) {
         localStorage.clear()
         window.location.href = '/login'

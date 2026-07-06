@@ -7,7 +7,7 @@ from datetime import datetime, date
 import math
 
 from app.core.database import get_db
-from app.core.security import require_hr, get_current_user, create_portal_token
+from app.core.security import require_hr, get_current_user, get_current_user_optional, create_portal_token
 from app.models.models import (
     HRUser, InternRecord, Candidate, Document, OfferLetter,
     AccountsTask, ITTask, ManagerReview, InternStatus, DocStatus, TaskStatus, MasterData
@@ -128,8 +128,13 @@ def initiate_intern(
         raise HTTPException(status_code=400, detail="Start date cannot be before today")
     if payload.end_date <= payload.start_date:
         raise HTTPException(status_code=400, detail="End date must be after start date")
-    if payload.review_due_date and payload.review_due_date >= payload.end_date:
-        raise HTTPException(status_code=400, detail="Manager Review Date must be before the end date")
+    if (payload.end_date - payload.start_date).days < 7:
+        raise HTTPException(status_code=400, detail="Internship must be at least 1 week")
+    if payload.review_due_date:
+        if payload.review_due_date < payload.start_date:
+            raise HTTPException(status_code=400, detail="Manager Review Date cannot be before start date")
+        if payload.review_due_date >= payload.end_date:
+            raise HTTPException(status_code=400, detail="Manager Review Date must be before the end date")
 
     # Calculate duration in weeks
     delta = payload.end_date - payload.start_date
@@ -162,7 +167,7 @@ def initiate_intern(
     db.refresh(record)
 
     # Create real portal token with actual record id
-    real_token = create_portal_token(str(record.id))
+    real_token = create_portal_token(str(record.id), expiry_days=payload.portal_expiry_days or 3)
     record.portal_token = real_token
     record.portal_token_sent_at = datetime.utcnow()
     record.status = InternStatus.portal_pending
@@ -206,7 +211,6 @@ def initiate_intern(
                entity_type="InternRecord", entity_id=str(record.id))
 
     return record
-
 
 # ── Get single intern detail ──────────────────────────────────────────────────
 
@@ -343,6 +347,22 @@ async def generate_offer(
     if not record:
         raise HTTPException(status_code=404, detail="Not found")
 
+    # Block offer letter generation until candidate has submitted details and documents
+    allowed_statuses = [
+        InternStatus.docs_under_review,
+        InternStatus.docs_approved,
+        InternStatus.offer_sent,
+        InternStatus.offer_accepted,
+        InternStatus.active,
+        InternStatus.review_pending,
+        InternStatus.completed,
+    ]
+    if record.status not in allowed_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail="Offer letter cannot be generated until the candidate has submitted their details and documents."
+        )
+
     pdf_bytes = await generate_offer_letter_pdf(record)
 
     offer = record.offer_letter
@@ -364,7 +384,6 @@ async def generate_offer(
     log_action(db, str(record.id), str(current_user.id), "OFFER_LETTER_GENERATED",
                entity_type="OfferLetter", entity_id=str(offer.id))
     return offer
-
 
 # ── HR uploads offer letter manually (override) ───────────────────────────────
 
@@ -730,6 +749,7 @@ def revoke_portal_link(
 def resend_portal_link(
     intern_id: UUID,
     background_tasks: BackgroundTasks,
+    payload: dict = Body(default={}),
     db: Session = Depends(get_db),
     current_user: HRUser = Depends(require_hr),
 ):
@@ -739,7 +759,8 @@ def resend_portal_link(
         raise HTTPException(status_code=404, detail="Not found")
 
     # Generate brand new token
-    new_token = create_portal_token(str(record.id))
+    expiry_days = payload.get("expiry_days", 3)
+    new_token = create_portal_token(str(record.id), expiry_days=expiry_days)
 
     # Clear revocation, reset token and tracking
     record.portal_token = new_token
@@ -909,7 +930,7 @@ def _get_or_create_masters(db: Session) -> MasterData:
 @router.get("/masters")
 def get_masters(
     db: Session = Depends(get_db),
-    current_user: HRUser = Depends(get_current_user),  # All roles can read
+    current_user=Depends(get_current_user_optional),
 ):
     """Get all masters data — accessible by all roles."""
     masters = _get_or_create_masters(db)

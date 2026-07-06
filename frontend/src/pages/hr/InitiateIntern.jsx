@@ -5,6 +5,8 @@ import { hrApi, authApi } from '../../api'
 import { Field, PageHeader, SectionCard } from '../../components/ui'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 
 export default function InitiateIntern() {
   const { register, handleSubmit, setValue, watch, trigger, formState: { errors, isSubmitting } } = useForm({
@@ -189,118 +191,145 @@ export default function InitiateIntern() {
         </SectionCard>
 
         {/* f: Internship Duration third */}
-        <SectionCard title="Internship Duration">
-          <div className="grid grid-cols-2 gap-4">
+        {/* f: Internship Duration third */}
+<SectionCard title="Internship Duration">
+  <div className="grid grid-cols-2 gap-4">
 
-            {/* b: Start date — cannot be before today */}
-            <Field label="Start Date" required error={errors.start_date?.message}>
-              <input
-                type="date" className="input"
-                min={today}
-                {...register('start_date', {
-                  required: 'Start date is required',
-                  validate: v => v >= today || 'Start date cannot be before today',
-                  onChange: () => { trigger('end_date'); trigger('review_due_date') }
-                })}
-              />
-              {!errors.start_date && <p className="text-xs text-slate-400 mt-1">Cannot be before today</p>}
-            </Field>
+    {/* Start Date */}
+    <Field label="Start Date" required error={errors.start_date?.message}>
+      <DatePicker
+        className="input w-full"
+        dateFormat="dd/MM/yyyy"
+        minDate={new Date()}
+        selected={watchStartDate ? new Date(watchStartDate) : null}
+        onChange={date => {
+          const val = date ? date.toISOString().split('T')[0] : ''
+          setValue('start_date', val, { shouldValidate: true })
+          trigger('end_date')
+          trigger('review_due_date')
+        }}
+        placeholderText="DD/MM/YYYY"
+      />
+      <input type="hidden" {...register('start_date', {
+        required: 'Start date is required',
+        validate: v => v >= today || 'Start date cannot be before today',
+      })} />
+      {!errors.start_date && <p className="text-xs text-slate-400 mt-1"></p>}
+    </Field>
 
-            {/* b: End date — must be after start date */}
-            <Field label="End Date" required error={errors.end_date?.message}>
-              <input
-                type="date" className="input"
-                min={watchStartDate ? watchStartDate : today}
-                {...register('end_date', {
-                  required: 'End date is required',
-                  validate: v => {
-                    const start = watch('start_date')
-                    if (!v) return 'End date is required'
-                    if (start && v <= start) return 'End date must be after start date'
-                    if (v <= today) return 'End date must be in the future'
-                    return true
-                  },
-                  onChange: () => trigger('review_due_date')
-                })}
-              />
-              {!errors.end_date && <p className="text-xs text-slate-400 mt-1">Must be after start date</p>}
-            </Field>
+    {/* End Date */}
+    <Field label="End Date" required error={errors.end_date?.message}>
+      <DatePicker
+        className="input w-full"
+        dateFormat="dd/MM/yyyy"
+        minDate={watchStartDate ? new Date(watchStartDate) : new Date()}
+        selected={watchEndDate ? new Date(watchEndDate) : null}
+        onChange={date => {
+          const val = date ? date.toISOString().split('T')[0] : ''
+          setValue('end_date', val, { shouldValidate: true })
+          trigger('review_due_date')
+        }}
+        placeholderText="DD/MM/YYYY"
+      />
+      <input type="hidden" {...register('end_date', {
+        required: 'End date is required',
+        validate: v => {
+          const start = watch('start_date')
+          if (!v) return 'End date is required'
+          if (start && v <= start) return 'End date must be after start date'
+          if (v <= today) return 'End date must be in the future'
+          const diffDays = (new Date(v) - new Date(start)) / (1000 * 60 * 60 * 24)
+          if (diffDays < 7) return 'Internship must be at least 1 week'
+          return true
+        },
+      })} />
+      {!errors.end_date && <p className="text-xs text-slate-400 mt-1"></p>}
+    </Field>
 
-            <Field label="Stipend Amount (₹/month)" error={errors.stipend_amount?.message}>
-              <input
-                type="number" className="input"
-                placeholder="Enter amount or pick template below"
-                {...register('stipend_amount', {
-                  min: { value: 0, message: 'Stipend cannot be negative' },
-                  max: { value: 100000, message: 'Stipend seems too high, please verify' }
-                })}
-              />
-              {(masters.stipend_templates || []).length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {(masters.stipend_templates || []).map(t => (
-                    <button
-                      key={t.label} type="button"
-                      onClick={() => setValue('stipend_amount', t.amount)}
-                      className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md hover:bg-indigo-100 transition-colors"
-                    >
-                      {t.label}: ₹{t.amount.toLocaleString('en-IN')}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </Field>
+    <Field label="Stipend Amount (₹/month)" error={errors.stipend_amount?.message}>
+      <input
+        type="number" className="input"
+        placeholder="Enter amount or pick template below"
+        {...register('stipend_amount', {
+          min: { value: 0, message: 'Stipend cannot be negative' },
+          max: { value: 100000, message: 'Stipend seems too high, please verify' }
+        })}
+      />
+      {/* {(masters.stipend_templates || []).length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {(masters.stipend_templates || []).map(t => (
+            <button
+              key={t.label} type="button"
+              onClick={() => setValue('stipend_amount', t.amount)}
+              className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md hover:bg-indigo-100 transition-colors"
+            >
+              {t.label}: ₹{t.amount.toLocaleString('en-IN')}
+            </button>
+          ))}
+        </div>
+      )} */}
+    </Field>
 
-            <Field label="Reporting Manager" required error={errors.reporting_manager_id?.message}>
-              <select
-                className="input"
-                {...register('reporting_manager_id', { required: 'Reporting manager is required' })}
-              >
-                <option value="">Select manager...</option>
-                {managers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-              </select>
-            </Field>
+    <Field label="Reporting Manager" required error={errors.reporting_manager_id?.message}>
+      <select
+        className="input"
+        {...register('reporting_manager_id', { required: 'Reporting manager is required' })}
+      >
+        <option value="">Select manager...</option>
+        {managers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+      </select>
+    </Field>
 
-            {/* a+b: Manager Review Date with days-before-end helper */}
-            <div className="col-span-2">
-              <div className="flex items-end gap-3 mb-2">
-                <div className="flex-1">
-                  <Field label="Manager Review Date" required error={errors.review_due_date?.message}>
-                    <input
-                      type="date" className="input"
-                      {...register('review_due_date', {
-                        required: 'Manager review date is required',
-                        validate: v => {
-                          const end = watch('end_date')
-                          if (end && v >= end) return 'Manager review date must be before the end date'
-                          return true
-                        }
-                      })}
-                    />
-                  </Field>
-                </div>
-                {/* a: Days before end date helper */}
-                <div className="flex flex-col gap-1 pb-0.5">
-                  <label className="text-xs text-slate-500 font-medium">Days before end date</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={365}
-                      value={daysBeforeEnd}
-                      onChange={e => setDaysBeforeEnd(Number(e.target.value))}
-                      className="input w-20 text-center"
-                    />
-                    <span className="text-xs text-slate-400">days</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-slate-400">
-                Date by which manager must complete evaluation. Default is 7 days before end date.
-              </p>
-            </div>
-
+    {/* Manager Review Date */}
+    <div className="col-span-2">
+      <div className="flex items-end gap-3 mb-2">
+        <div className="flex-1">
+          <Field label="Manager Review Date" required error={errors.review_due_date?.message}>
+            <DatePicker
+              className="input w-full"
+              dateFormat="dd/MM/yyyy"
+              minDate={watchStartDate ? new Date(watchStartDate) : new Date()}
+              maxDate={watchEndDate ? new Date(new Date(watchEndDate).setDate(new Date(watchEndDate).getDate() - 1)) : null}
+              selected={watch('review_due_date') ? new Date(watch('review_due_date')) : null}
+              onChange={date => {
+                const val = date ? date.toISOString().split('T')[0] : ''
+                setValue('review_due_date', val, { shouldValidate: true })
+              }}
+              placeholderText="DD/MM/YYYY"
+            />
+            <input type="hidden" {...register('review_due_date', {
+              required: 'Manager review date is required',
+              validate: v => {
+                const start = watch('start_date')
+                const end = watch('end_date')
+                if (!v) return 'Manager review date is required'
+                if (start && v < start) return 'Cannot be before start date'
+                if (end && v >= end) return 'Must be before end date'
+                return true
+              }
+            })} />
+          </Field>
+        </div>
+        <div className="flex flex-col gap-1 pb-0.5">
+          <label className="text-xs text-slate-500 font-medium">Days before end date</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number" min={0} max={365}
+              value={daysBeforeEnd}
+              onChange={e => setDaysBeforeEnd(Number(e.target.value))}
+              className="input w-20 text-center"
+            />
+            <span className="text-xs text-slate-400">days</span>
           </div>
-        </SectionCard>
+        </div>
+      </div>
+      <p className="text-xs text-slate-400">
+        Date by which manager must complete evaluation. Default is 7 days before end date.
+      </p>
+    </div>
+
+  </div>
+</SectionCard>
 
         {/* f: Assets & Provisioning last */}
         <SectionCard title="Assets & Provisioning">
@@ -318,7 +347,7 @@ export default function InitiateIntern() {
                 <input className="input" placeholder="e.g. Access card, Lab equipment" {...register('other_assets')} />
               </Field>
             </div>
-            <div className="col-span-2">
+            {/* <div className="col-span-2">
               <Field label="Notes for Accounts Team">
                 <textarea
                   rows={3} className="input"
@@ -326,7 +355,7 @@ export default function InitiateIntern() {
                   {...register('notes_for_accounts')}
                 />
               </Field>
-            </div>
+            </div> */}
           </div>
         </SectionCard>
 

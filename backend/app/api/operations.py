@@ -76,7 +76,9 @@ def get_accounts_tasks(
     db: Session = Depends(get_db),
     current_user: HRUser = Depends(require_accounts),
 ):
-    tasks = db.query(AccountsTask).order_by(AccountsTask.created_at.desc()).all()
+    tasks = db.query(AccountsTask).join(InternRecord).filter(
+        InternRecord.stipend_amount > 0
+    ).order_by(AccountsTask.created_at.desc()).all()
     return [_build_accounts_task(t) for t in tasks]
 
 
@@ -225,7 +227,10 @@ def get_it_tasks(
     db: Session = Depends(get_db),
     current_user: HRUser = Depends(require_it),
 ):
-    tasks = db.query(ITTask).order_by(ITTask.created_at.desc()).all()
+    tasks = db.query(ITTask).join(InternRecord).filter(
+        (InternRecord.laptop_required == True) |
+        (InternRecord.corporate_email_required == True)
+    ).order_by(ITTask.created_at.desc()).all()
     return [_build_it_task(t) for t in tasks]
 
 

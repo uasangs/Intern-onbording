@@ -36,7 +36,7 @@ const STATUS_CONFIG = {
     label: 'Expired',
     color: 'bg-slate-100 text-slate-600 border-slate-200',
     dot: 'bg-slate-400',
-    desc: 'Link is older than 30 days — resend to generate new one',
+    desc: 'Link has expired — resend to generate a new one',
   },
   not_generated: {
     icon: <AlertCircle className="w-4 h-4" />,
@@ -54,6 +54,7 @@ export default function PortalLinkManager({ internId }) {
   const [resending, setResending] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showConfirmRevoke, setShowConfirmRevoke] = useState(false)
+const [expiryDays, setExpiryDays] = useState(3)
 
   const load = () => {
     hrApi.getPortalStatus(internId)
@@ -87,7 +88,7 @@ export default function PortalLinkManager({ internId }) {
   const handleResend = async () => {
     setResending(true)
     try {
-      const res = await hrApi.resendPortalLink(internId)
+      const res = await hrApi.resendPortalLink(internId, expiryDays)
       toast.success(res.data.message)
       // Show the new URL too
       if (res.data.portal_url) {
@@ -159,6 +160,20 @@ export default function PortalLinkManager({ internId }) {
         </div>
       </div>
 
+      {/* Sent confirmation badge */}
+      {portalStatus.sent_at && (
+        <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-green-700">Link sent to candidate</p>
+            <p className="text-xs text-green-600 mt-0.5">
+              Sent on {format(toLocal(portalStatus.sent_at), 'dd/MM/yyyy, HH:mm')}
+              {' · '}{portalStatus.candidate_email}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Extra info */}
       <div className="space-y-1.5 text-xs text-slate-500">
         {portalStatus.expires_at && (
@@ -180,6 +195,7 @@ export default function PortalLinkManager({ internId }) {
           <span className={`font-medium ${portalStatus.portal_submitted ? 'text-green-600' : 'text-amber-600'}`}>
             {portalStatus.portal_submitted ? 'Yes' : 'Not yet'}
           </span>
+          
         </div>
       </div>
 
@@ -201,6 +217,20 @@ export default function PortalLinkManager({ internId }) {
           </div>
         </div>
       )}
+
+      {/* Expiry days input */}
+      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+        <label className="text-xs text-slate-600 font-medium whitespace-nowrap">Link valid for:</label>
+        <input
+          type="number"
+          min={1}
+          max={365}
+          value={expiryDays}
+          onChange={e => setExpiryDays(Number(e.target.value))}
+          className="input w-20 text-center text-sm"
+        />
+        <span className="text-xs text-slate-500">days from now</span>
+      </div>
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-3 pt-1">
@@ -253,7 +283,7 @@ export default function PortalLinkManager({ internId }) {
       <div className="text-xs text-slate-400 space-y-1">
         {isActive && (
           <>
-            <p>• <strong>Resend New Link</strong> — generates a fresh 30-day link and emails it. Old link stops working.</p>
+            <p>• <strong>Resend New Link</strong> — generates a fresh {expiryDays}-day link and emails it. Old link stops working.</p>
             <p>• <strong>Revoke Link</strong> — candidate immediately sees "link revoked" message. Use Resend to restore access.</p>
           </>
         )}
@@ -261,7 +291,7 @@ export default function PortalLinkManager({ internId }) {
           <p>• <strong>Generate & Send New Link</strong> — creates a fresh link and restores candidate access.</p>
         )}
         {portalStatus.status === 'expired' && (
-          <p>• <strong>Generate & Send New Link</strong> — creates a fresh 30-day link and emails it to the candidate.</p>
+          <p>• <strong>Generate & Send New Link</strong> — creates a fresh {expiryDays}-day link and emails it to the candidate.</p>
         )}
       </div>
     </div>

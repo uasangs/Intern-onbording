@@ -188,7 +188,20 @@ export default function ManagerDashboard() {
                       <td className="table-td">
                         <DaysRemaining endDate={intern.end_date} />
                       </td>
-                      <td className="table-td"><StatusBadge status={intern.status} /></td>
+                      <td className="table-td">
+  {intern.status === 'offer_accepted' && (
+    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-50 text-blue-700">Active</span>
+  )}
+  {intern.status === 'active' && (
+    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700">Active</span>
+  )}
+  {intern.status === 'review_pending' && (
+    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700">Review Submitted</span>
+  )}
+  {intern.status === 'completed' && (
+    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">Completed</span>
+  )}
+</td>
                       <td className="table-td">
                         {intern.review_submitted ? (
                           <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">

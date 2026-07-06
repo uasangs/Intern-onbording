@@ -73,7 +73,7 @@ class InternInitiateRequest(BaseModel):
     year_of_study: Optional[str] = None
     graduation_year: Optional[int] = None
     candidate_city: Optional[str] = None
-    candidate_state: Optional[str] = None
+    portal_expiry_days: Optional[int] = 3
 
 
 class InternRecordOut(BaseModel):

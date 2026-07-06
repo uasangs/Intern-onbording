@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { candidateApi } from '../../api'
 import { SectionCard, StatusBadge, Spinner } from '../../components/ui'
-import { FileText, CheckCircle, XCircle, HelpCircle } from 'lucide-react'
+import { FileText, CheckCircle, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const fileUrl = (path) => path ? `http://localhost:8000${path}` : null
@@ -66,12 +66,10 @@ export default function PortalStep4Offer({ token, info, onBack, onAccepted }) {
         {responded ? (
           <div className={`flex items-center gap-3 p-4 rounded-lg ${
             offer.candidate_response === 'accepted' ? 'bg-green-50 text-green-700' :
-            offer.candidate_response === 'declined' ? 'bg-red-50 text-red-700' :
-            'bg-amber-50 text-amber-700'
+            'bg-red-50 text-red-700'
           }`}>
             {offer.candidate_response === 'accepted' && <CheckCircle className="w-5 h-5" />}
             {offer.candidate_response === 'declined' && <XCircle className="w-5 h-5" />}
-            {offer.candidate_response === 'clarification_requested' && <HelpCircle className="w-5 h-5" />}
             <div>
               <p className="font-medium capitalize">Offer {offer.candidate_response?.replace(/_/g, ' ')}</p>
               {offer.candidate_remarks && <p className="text-sm mt-0.5">{offer.candidate_remarks}</p>}
@@ -88,9 +86,7 @@ export default function PortalStep4Offer({ token, info, onBack, onAccepted }) {
               <button onClick={() => respond('accepted')} disabled={responding} className="btn-primary flex-1 flex items-center justify-center gap-2">
                 <CheckCircle className="w-4 h-4" />{responding ? 'Submitting...' : 'Accept Offer'}
               </button>
-              <button onClick={() => respond('clarification_requested')} disabled={responding} className="btn-secondary flex-1 flex items-center justify-center gap-2">
-                <HelpCircle className="w-4 h-4" />Request Clarification
-              </button>
+              
               <button onClick={() => respond('declined')} disabled={responding} className="btn-danger flex items-center justify-center gap-2 px-4">
                 <XCircle className="w-4 h-4" />Decline
               </button>

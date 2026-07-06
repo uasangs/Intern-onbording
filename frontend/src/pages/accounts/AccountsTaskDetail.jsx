@@ -36,7 +36,11 @@ export default function AccountsTaskDetail() {
   useEffect(() => { load() }, [taskId])
 
   const saveTask = async (field, value) => {
-    if (!value && value !== false) return
+  if (!value && value !== false && value !== '') return
+  if (field === 'vendor_id' && !value) {
+    toast.error('Vendor ID cannot be empty')
+    return
+  }
     setSaving(true)
     try {
       await accountsApi.updateTask(taskId, { [field]: value })
@@ -239,11 +243,17 @@ export default function AccountsTaskDetail() {
               </div>
             ) : (
               <button
-                onClick={() => saveTask('task_status', 'completed')}
-                disabled={saving || noBankDetails}
-                className="btn-primary flex items-center gap-2"
-                title={noBankDetails ? 'Cannot complete — bank details missing' : ''}
-              >
+  onClick={() => {
+    if (!task.vendor_id) {
+      toast.error('Please enter Vendor ID before marking as complete')
+      return
+    }
+    saveTask('task_status', 'completed')
+  }}
+  disabled={saving || noBankDetails}
+  className="btn-primary flex items-center gap-2"
+  title={noBankDetails ? 'Cannot complete — bank details missing' : !task.vendor_id ? 'Vendor ID is required' : ''}
+>
                 <CheckCircle className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Mark Vendor Setup Complete'}
               </button>

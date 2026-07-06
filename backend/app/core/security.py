@@ -54,8 +54,9 @@ def generate_portal_token() -> str:
     return "".join(secrets.choice(alphabet) for _ in range(64))
 
 
-def create_portal_token(intern_record_id: str) -> str:
-    expire = datetime.utcnow() + timedelta(days=settings.PORTAL_TOKEN_EXPIRE_DAYS)
+def create_portal_token(intern_record_id: str, expiry_days: int = None) -> str:
+    days = expiry_days if expiry_days is not None else settings.PORTAL_TOKEN_EXPIRE_DAYS
+    expire = datetime.utcnow() + timedelta(days=days)
     data = {
         "sub": intern_record_id,
         "type": "portal",
@@ -118,3 +119,19 @@ require_it = require_role("it")
 require_manager = require_role("manager")
 require_hr_or_manager = require_role("hr", "manager")
 require_any = require_role("hr", "accounts", "it", "manager")
+
+def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+):
+    """Like get_current_user but returns None instead of raising 401 — for public endpoints."""
+    from app.models.models import HRUser
+    if not credentials:
+        return None
+    payload = decode_token(credentials.credentials)
+    if not payload or payload.get("type") != "access":
+        return None
+    user = db.query(HRUser).filter(HRUser.id == payload.get("sub")).first()
+    if not user or not user.is_active:
+        return None
+    return user

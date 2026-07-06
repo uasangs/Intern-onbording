@@ -190,20 +190,28 @@ export default function InternDetail() {
   const review = intern.manager_review
 
   // g: Status timeline steps
-  const STATUS_STEPS = [
-    { key: 'initiated',         label: 'Initiated' },
-    { key: 'portal_pending',    label: 'Portal Sent' },
-    { key: 'portal_submitted',  label: 'Form Filled' },
-    { key: 'docs_under_review', label: 'Docs Review' },
-    { key: 'docs_approved',     label: 'Docs Approved' },
-    { key: 'offer_sent',        label: 'Offer Sent' },
-    { key: 'offer_accepted',    label: 'Offer Accepted' },
-    { key: 'active',            label: 'Active' },
-    { key: 'review_pending',    label: 'Candidate Review Pending' },
-    { key: 'completed',         label: 'Completed' },
-  ]
+ const STATUS_STEPS = [
+  { key: 'initiated',        label: 'Initiated' },
+  { key: 'portal_submitted', label: 'Form Submitted' },
+  { key: 'offer_accepted',   label: 'Offer Accepted' },
+  { key: 'active',           label: 'Manager Review' },
+  { key: 'review_pending',   label: 'Candidate Review' },
+  { key: 'completed',        label: 'Completed' },
+]
   const statusOrder = STATUS_STEPS.map(s => s.key)
-  const currentIdx = statusOrder.indexOf(intern.status)
+  const statusMapping = {
+  'initiated':         0,
+  'portal_pending':    0,
+  'portal_submitted':  1,
+  'docs_under_review': 1,
+  'docs_approved':     1,
+  'offer_sent':        2,
+  'offer_accepted':    2,
+  'active':            3,
+  'review_pending':    4,
+  'completed':         5,
+}
+const currentIdx = statusMapping[intern.status] ?? 0
   const isDeclined = intern.status === 'offer_declined' || intern.status === 'terminated'
 
   return (
@@ -215,41 +223,39 @@ export default function InternDetail() {
       />
 
       {/* g: Status Timeline */}
-      <div className="card p-4 overflow-x-auto">
-        <div className="flex items-center gap-0 min-w-max">
-          {STATUS_STEPS.map((step, idx) => {
-            const done = currentIdx > idx
-            const active = currentIdx === idx
-            return (
-              <div key={step.key} className="flex items-center">
-                <div className="flex flex-col items-center">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all
-                    ${isDeclined && active ? 'bg-red-100 border-red-400 text-red-600' :
-                      active ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' :
-                      done ? 'bg-green-500 border-green-500 text-white' :
-                      'bg-white border-slate-200 text-slate-300'}`}>
-                    {done ? '✓' : idx + 1}
-                  </div>
-                  <span className={`text-xs mt-1 text-center max-w-16 leading-tight
-                    ${active ? 'text-indigo-700 font-semibold' :
-                      done ? 'text-green-600 font-medium' :
-                      'text-slate-300'}`}>
-                    {step.label}
-                  </span>
-                </div>
-                {idx < STATUS_STEPS.length - 1 && (
-                  <div className={`h-0.5 w-8 mb-5 mx-0.5 ${done ? 'bg-green-400' : 'bg-slate-100'}`} />
-                )}
-              </div>
-            )
-          })}
+       {/* Status Timeline */}
+<div className="card px-10 py-6">
+  <div className="flex items-center justify-between relative">
+    <div className="absolute top-5 left-10 right-10 h-0.5 bg-slate-100 z-0" />
+    {STATUS_STEPS.map((step, idx) => {
+      const done = currentIdx > idx
+      const active = currentIdx === idx
+      return (
+        <div key={step.key} className="flex flex-col items-center z-10 flex-1 gap-2">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all shadow-sm
+            ${isDeclined && active ? 'bg-red-100 border-red-400 text-red-600' :
+              active ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' :
+              done ? 'bg-green-500 border-green-500 text-white' :
+              'bg-white border-slate-200 text-slate-300'}`}>
+            {done ? '✓' : idx + 1}
+          </div>
+          <span className={`text-xs text-center leading-snug font-medium
+            ${active ? 'text-indigo-700 font-semibold' :
+              done ? 'text-green-600' :
+              'text-slate-300'}`}
+            style={{fontSize: '11px', maxWidth: '90px'}}>
+            {step.label}
+          </span>
         </div>
-        {isDeclined && (
-          <p className="text-xs text-red-500 mt-2 font-medium">
-            {intern.status === 'offer_declined' ? '⚠ Candidate declined the offer' : '⚠ Internship terminated'}
-          </p>
-        )}
-      </div>
+      )
+    })}
+  </div>
+  {isDeclined && (
+    <p className="text-xs text-red-500 mt-3 font-medium text-center">
+      {intern.status === 'offer_declined' ? '⚠ Candidate declined the offer' : '⚠ Internship terminated'}
+    </p>
+  )}
+</div>
 
       {/* Internship Details */}
       <SectionCard title="Internship Details">
@@ -414,10 +420,10 @@ export default function InternDetail() {
 
           {/* c: Bank Details — visually distinct blue block */}
           {c.bank_details && (
-            <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <div className="mt-2 rounded-xl border p-4">
               <div className="flex items-center gap-2 mb-3">
                 <CreditCard className="w-4 h-4 text-blue-600" />
-                <p className="text-xs font-bold text-blue-700 uppercase tracking-wide">Bank Details</p>
+                <p className="text-xs font-bold text-700 uppercase tracking-wide">Bank Details</p>
               </div>
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 {[
@@ -428,8 +434,8 @@ export default function InternDetail() {
                   ['Account Holder', c.bank_details.account_holder_name],
                 ].map(([k, v]) => v ? (
                   <div key={k}>
-                    <p className="text-xs text-blue-500 font-medium">{k}</p>
-                    <p className="font-mono font-semibold text-blue-900 mt-0.5 text-sm">{v}</p>
+                    <p className="text-xs text--500 font-medium">{k}</p>
+                    <p className="font-mono font-semibold text--900 mt-0.5 text-sm">{v}</p>
                   </div>
                 ) : null)}
               </div>
@@ -567,7 +573,9 @@ export default function InternDetail() {
 
       {/* Accounts Task */}
       <SectionCard title="Accounts — Stipend & Vendor Status">
-        {!accountsTask ? (
+  {intern.stipend_amount === 0 ? (
+    <p className="text-sm text-slate-400">No stipend provided for this intern.</p>
+  ) : !accountsTask ? (
           <p className="text-sm text-slate-400">Accounts task not created yet. Will be created automatically when candidate accepts the offer letter.</p>
         ) : (
           <div className="space-y-4">
@@ -598,7 +606,9 @@ export default function InternDetail() {
 
       {/* IT Task */}
       <SectionCard title="IT — Asset Provisioning Status">
-        {!itTask ? (
+  {!intern.laptop_required && !intern.corporate_email_required ? (
+    <p className="text-sm text-slate-400">No IT assets required for this intern.</p>
+  ) : !itTask ? (
           <p className="text-sm text-slate-400">IT task not created yet. Will be created automatically when candidate accepts the offer letter.</p>
         ) : (
           <div className="space-y-4">

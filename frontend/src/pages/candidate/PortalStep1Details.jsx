@@ -59,7 +59,7 @@ export default function PortalStep1Details({ token, info, onDone }) {
   // HR-filled fields are ALWAYS locked — whether first visit or return visit
   const isLocked = (field) => hrFields.includes(field)
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm({
     defaultValues: { privacy_accepted: false },
     mode: 'onTouched',
   })
@@ -93,7 +93,7 @@ export default function PortalStep1Details({ token, info, onDone }) {
         ifsc_code: info.ifsc_code || '',
         account_holder_name: info.account_holder_name || '',
         account_type: info.account_type || 'savings',
-        privacy_accepted: isResubmit,
+        privacy_accepted: true,
       })
     }
   }, [info, reset, isResubmit])
@@ -101,7 +101,7 @@ export default function PortalStep1Details({ token, info, onDone }) {
   const onSubmit = async (data) => {
     try {
       await candidateApi.submitPortal(token, {
-        privacy_accepted: data.privacy_accepted,
+        privacy_accepted: true,
         personal: {
           full_name: data.full_name, gender: data.gender, dob: data.dob,
           mobile: data.mobile, contact_no: data.contact_no, address: data.address,
@@ -116,11 +116,14 @@ export default function PortalStep1Details({ token, info, onDone }) {
           course: data.course, year_of_study: data.year_of_study,
           graduation_year: parseInt(data.graduation_year),
         },
-        bank: {
-          bank_name: data.bank_name, account_number: data.account_number,
-          ifsc_code: data.ifsc_code?.toUpperCase(), account_holder_name: data.account_holder_name,
-          account_type: data.account_type,
-        },
+        bank: info?.stipend_amount > 0 ? {
+  bank_name: data.bank_name, account_number: data.account_number,
+  ifsc_code: data.ifsc_code?.toUpperCase(), account_holder_name: data.account_holder_name,
+  account_type: data.account_type,
+} : {
+  bank_name: '', account_number: '', ifsc_code: '',
+  account_holder_name: '', account_type: 'savings',
+},
       })
       toast.success(isResubmit ? 'Details updated successfully!' : 'Details submitted successfully!')
       onDone()
@@ -132,18 +135,7 @@ export default function PortalStep1Details({ token, info, onDone }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
-      {hrFields.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <Lock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-amber-800">Some fields are pre-filled by HR</p>
-            <p className="text-xs text-amber-700 mt-0.5">
-              Fields marked with <Lock className="w-3 h-3 inline" /> were filled by HR and <strong>cannot be changed</strong>.
-              If any HR-filled information is incorrect, please contact HR to update it and resend you the link.
-            </p>
-          </div>
-        </div>
-      )}
+     
       {isResubmit && hrFields.length === 0 && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
           <Edit3 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
@@ -187,11 +179,22 @@ export default function PortalStep1Details({ token, info, onDone }) {
           )}
 
           <Field label="Date of Birth" required error={errors.dob?.message}>
-            <input type="date" className="input" max={today}
-              {...register('dob', {
-                required: 'Date of birth is required',
-                validate: v => v <= today || 'Date of birth cannot be in the future',
-              })} />
+           <input type="date" className="input" max={(() => {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - 18)
+  return d.toISOString().split('T')[0]
+})()}
+  {...register('dob', {
+    required: 'Date of birth is required',
+    validate: v => {
+      if (!v) return 'Date of birth is required'
+      const dob = new Date(v)
+      const minAge = new Date()
+      minAge.setFullYear(minAge.getFullYear() - 18)
+      if (dob > minAge) return 'You must be at least 18 years old'
+      return true
+    },
+  })} />
           </Field>
 
           {isLocked('mobile') ? (
@@ -266,16 +269,20 @@ export default function PortalStep1Details({ token, info, onDone }) {
 
           {/* g-iv: Aadhaar shown as 1234-5678-9012 */}
           <Field label="Aadhaar No." required error={errors.aadhaar_no?.message}>
-            <input className="input" placeholder="1234-5678-9012"
-              onKeyDown={combine(onlyDigits, maxLen(14))}
-              onChange={e => {
-                const raw = e.target.value.replace(/-/g, '').slice(0, 12)
-                e.target.value = formatAadhaar(raw)
-              }}
-              {...register('aadhaar_no', {
-                required: 'Aadhaar number is required',
-                validate: v => (v || '').replace(/-/g, '').length === 12 || 'Aadhaar must be exactly 12 digits',
-              })} />
+           <input className="input" placeholder="1234-5678-9012"
+  maxLength={14}
+  onKeyDown={combine(onlyDigits, maxLen(14))}
+  {...register('aadhaar_no', {
+    required: 'Aadhaar number is required',
+    validate: v => (v || '').replace(/-/g, '').length === 12 || 'Aadhaar must be exactly 12 digits',
+    onChange: e => {
+      const raw = e.target.value.replace(/\D/g, '').slice(0, 12)
+      const formatted = raw.replace(/(\d{4})(\d{0,4})(\d{0,4})/, (_, a, b, c) =>
+        [a, b, c].filter(Boolean).join('-')
+      )
+      setValue('aadhaar_no', formatted, { shouldValidate: true })
+    }
+  })} />
           </Field>
 
           <Field label="Emergency Contact Name" required error={errors.emergency_contact_name?.message}>
@@ -363,79 +370,63 @@ export default function PortalStep1Details({ token, info, onDone }) {
         </div>
       </SectionCard>
 
-      {/* ── Bank Details ──────────────────────────────────────────── */}
-      <SectionCard title="Bank Details (for Stipend)">
-        <div className="grid grid-cols-2 gap-4">
+        {/* ── Bank Details — only show if stipend > 0 ─────────────── */}
+      {info?.stipend_amount > 0 && (
+        <SectionCard title="Bank Details (for Stipend)">
+          <div className="grid grid-cols-2 gap-4">
 
-          <Field label="Bank Name" required error={errors.bank_name?.message}>
-            <input className="input" placeholder="e.g. State Bank of India"
-              onKeyDown={onlyLetters}
-              {...register('bank_name', {
-                required: 'Bank name is required',
-                minLength: { value: 2, message: 'Please enter full bank name' },
-              })} />
-          </Field>
-
-          <Field label="Account Type" required error={errors.account_type?.message}>
-            <select className="input" {...register('account_type', { required: 'Account type is required' })}>
-              <option value="savings">Savings</option>
-              <option value="current">Current</option>
-            </select>
-          </Field>
-
-          <Field label="Account Number" required error={errors.account_number?.message}>
-            <input className="input" placeholder="9–18 digit account number" maxLength={18}
-              onKeyDown={combine(onlyDigits, maxLen(18))}
-              {...register('account_number', {
-                required: 'Account number is required',
-                pattern: { value: /^\d{9,18}$/, message: 'Account number must be 9–18 digits' },
-              })} />
-          </Field>
-
-          <Field label="IFSC Code" required error={errors.ifsc_code?.message}>
-            <input className="input" placeholder="e.g. SBIN0001234" maxLength={11}
-              style={{ textTransform: 'uppercase' }}
-              onKeyDown={combine(onlyAlphanumeric, maxLen(11))}
-              {...register('ifsc_code', {
-                required: 'IFSC code is required',
-                pattern: { value: /^[A-Z]{4}0[A-Z0-9]{6}$/i, message: 'Invalid IFSC — format must be SBIN0001234' },
-              })} />
-          </Field>
-
-          <div className="col-span-2">
-            <Field label="Account Holder Name" required error={errors.account_holder_name?.message}>
-              <input className="input" placeholder="Name as per bank records"
+            <Field label="Bank Name" required error={errors.bank_name?.message}>
+              <input className="input" placeholder="e.g. State Bank of India"
                 onKeyDown={onlyLetters}
-                {...register('account_holder_name', {
-                  required: 'Account holder name is required',
-                  minLength: { value: 2, message: 'Please enter full name as per bank records' },
+                {...register('bank_name', {
+                  required: 'Bank name is required',
+                  minLength: { value: 2, message: 'Please enter full bank name' },
                 })} />
             </Field>
+
+            <Field label="Account Type" required error={errors.account_type?.message}>
+              <select className="input" {...register('account_type', { required: 'Account type is required' })}>
+                <option value="savings">Savings</option>
+                <option value="current">Current</option>
+              </select>
+            </Field>
+
+            <Field label="Account Number" required error={errors.account_number?.message}>
+              <input className="input" placeholder="9–18 digit account number" maxLength={18}
+                onKeyDown={combine(onlyDigits, maxLen(18))}
+                {...register('account_number', {
+                  required: 'Account number is required',
+                  pattern: { value: /^\d{9,18}$/, message: 'Account number must be 9–18 digits' },
+                })} />
+            </Field>
+
+            <Field label="IFSC Code" required error={errors.ifsc_code?.message}>
+              <input className="input" placeholder="e.g. SBIN0001234" maxLength={11}
+                style={{ textTransform: 'uppercase' }}
+                onKeyDown={combine(onlyAlphanumeric, maxLen(11))}
+                {...register('ifsc_code', {
+                  required: 'IFSC code is required',
+                  pattern: { value: /^[A-Z]{4}0[A-Z0-9]{6}$/i, message: 'Invalid IFSC — format must be SBIN0001234' },
+                })} />
+            </Field>
+
+            <div className="col-span-2">
+              <Field label="Account Holder Name" required error={errors.account_holder_name?.message}>
+                <input className="input" placeholder="Name as per bank records"
+                  onKeyDown={onlyLetters}
+                  {...register('account_holder_name', {
+                    required: 'Account holder name is required',
+                    minLength: { value: 2, message: 'Please enter full name as per bank records' },
+                  })} />
+              </Field>
+            </div>
+
           </div>
+        </SectionCard>
+      )}
 
-        </div>
-      </SectionCard>
-
-      {/* ── Privacy Policy ────────────────────────────────────────── */}
-      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-        <p className="text-xs font-semibold text-slate-700">Privacy Policy & Data Consent *</p>
-        <p className="text-xs text-slate-500 leading-relaxed">
-          By submitting this form, you consent to Grasim Industries Ltd. collecting, storing, and processing
-          your personal information (including PAN, Aadhaar, bank details) for internship onboarding purposes.
-          Your data will be kept confidential and used only for HR and payroll processing.
-        </p>
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input type="checkbox" className="w-4 h-4 mt-0.5 text-indigo-600 flex-shrink-0"
-            {...register('privacy_accepted', { required: 'You must accept the privacy policy to continue' })} />
-          <span className="text-xs text-slate-700">
-            I have read and agree to the <strong>Privacy Policy</strong>. I consent to Grasim Industries
-            processing my personal data as described above. *
-          </span>
-        </label>
-        {errors.privacy_accepted && (
-          <p className="text-xs text-red-600">{errors.privacy_accepted.message}</p>
-        )}
-      </div>
+              
+    
 
       <div className="flex items-center justify-between">
         <p className="text-xs text-slate-400">
