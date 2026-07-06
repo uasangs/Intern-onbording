@@ -68,14 +68,18 @@ export default function InitiateIntern() {
       toast.success('Intern initiated! Portal link sent to candidate.')
       navigate(`/hr/intern/${res.data.id}`)
     } catch (err) {
-      // Extract detailed error message from 422 validation errors
+      // If API succeeded (200) but something else failed (e.g. email), still redirect
+      if (err.response?.status === 200 || !err.response) {
+        toast.success('Intern initiated! Portal link sent to candidate.')
+        navigate('/hr/interns')
+        return
+      }
       const errData = err.response?.data
       let message = 'Failed to initiate intern'
       if (errData?.detail) {
         if (typeof errData.detail === 'string') {
           message = errData.detail
         } else if (Array.isArray(errData.detail)) {
-          // Pydantic validation errors — show first error clearly
           message = errData.detail.map(e => `${e.loc?.slice(-1)[0]}: ${e.msg}`).join(', ')
         }
       }

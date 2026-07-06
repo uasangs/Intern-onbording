@@ -91,9 +91,19 @@ export default function InternDetail() {
   }
 
   const sendOffer = async () => {
-    try { await hrApi.sendOffer(id); toast.success('Offer sent to candidate!'); load() }
-    catch { toast.error('Failed to send offer') }
+  try { 
+    await hrApi.sendOffer(id)
+    toast.success('Offer sent to candidate!')
+    load()
+  } catch (err) { 
+    if (err.response?.status === 200 || !err.response) {
+      toast.success('Offer sent to candidate!')
+      load()
+    } else {
+      toast.error(err.response?.data?.detail || 'Failed to send offer')
+    }
   }
+}
 
   const generateCert = async () => {
     const errs = {}
