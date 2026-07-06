@@ -103,58 +103,81 @@ export default function InitiateIntern() {
 
         {/* f: Candidate Details first */}
         <SectionCard title="Candidate Details (Pre-fill for Offer Letter)">
-          <p className="text-xs text-slate-400 mb-4">
-            Optional — fill if known, so the offer letter can be generated before the candidate completes the portal.
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Full Name">
-              <input className="input" placeholder="e.g. Niket Totala" {...register('candidate_name')} />
-            </Field>
-            <Field label="Gender">
-              <select className="input" {...register('candidate_gender')}>
-                <option value="">Select...</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
-            </Field>
-            <Field label="Mobile" error={errors.candidate_mobile?.message}>
-              <input
-                className="input" type="tel" placeholder="e.g. 9876543210"
-                {...register('candidate_mobile', {
-                  pattern: { value: /^[6-9]\d{9}$/, message: 'Enter valid 10-digit mobile number' }
-                })}
-              />
-            </Field>
-            <Field label="Institute Name">
-              <input className="input" placeholder="e.g. VJTI Mumbai" {...register('institute_name')} />
-            </Field>
-            <Field label="Qualification">
-              <input className="input" placeholder="e.g. B.Tech, MBA" {...register('qualification')} />
-            </Field>
-            <Field label="Course">
-              <input className="input" placeholder="e.g. Mechanical Engineering" {...register('course')} />
-            </Field>
-            <Field label="Year of Study">
-              <input className="input" placeholder="e.g. 3rd Year" {...register('year_of_study')} />
-            </Field>
-            <Field label="Graduation Year" error={errors.graduation_year?.message}>
-              <input
-                type="number" className="input" placeholder="e.g. 2026"
-                {...register('graduation_year', {
-                  valueAsNumber: true,
-                  min: { value: 2020, message: 'Enter a valid graduation year' },
-                  max: { value: 2035, message: 'Enter a valid graduation year' }
-                })}
-              />
-            </Field>
-            <Field label="City">
-              <input className="input" placeholder="e.g. Mumbai" {...register('candidate_city')} />
-            </Field>
-            <Field label="State">
-              <input className="input" placeholder="e.g. Maharashtra" {...register('candidate_state')} />
-            </Field>
-          </div>
-        </SectionCard>
+  <p className="text-xs text-slate-400 mb-4">
+    All fields are required for offer letter generation.
+  </p>
+  <div className="grid grid-cols-2 gap-4">
+    <Field label="Full Name" required error={errors.candidate_name?.message}>
+      <input className="input" placeholder="e.g. Niket Totala"
+        {...register('candidate_name', {
+          required: 'Full name is required',
+          minLength: { value: 2, message: 'Name must be at least 2 characters' },
+        })} />
+    </Field>
+    <Field label="Gender" required error={errors.candidate_gender?.message}>
+      <select className="input" {...register('candidate_gender', {
+        required: 'Gender is required',
+      })}>
+        <option value="">Select...</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </Field>
+    <Field label="Mobile" required error={errors.candidate_mobile?.message}>
+      <input className="input" type="tel" placeholder="e.g. 9876543210"
+        {...register('candidate_mobile', {
+          required: 'Mobile number is required',
+          pattern: { value: /^[6-9]\d{9}$/, message: 'Enter valid 10-digit Indian mobile number' },
+        })} />
+    </Field>
+    <Field label="Institute Name" required error={errors.institute_name?.message}>
+      <input className="input" placeholder="e.g. VJTI Mumbai"
+        {...register('institute_name', {
+          required: 'Institute name is required',
+          minLength: { value: 2, message: 'Enter full institute name' },
+        })} />
+    </Field>
+    <Field label="Qualification" required error={errors.qualification?.message}>
+      <input className="input" placeholder="e.g. B.Tech, MBA"
+        {...register('qualification', {
+          required: 'Qualification is required',
+        })} />
+    </Field>
+    <Field label="Course" required error={errors.course?.message}>
+      <input className="input" placeholder="e.g. Mechanical Engineering"
+        {...register('course', {
+          required: 'Course is required',
+        })} />
+    </Field>
+    <Field label="Year of Study" required error={errors.year_of_study?.message}>
+      <input className="input" placeholder="e.g. 3rd Year"
+        {...register('year_of_study', {
+          required: 'Year of study is required',
+        })} />
+    </Field>
+    <Field label="Graduation Year" required error={errors.graduation_year?.message}>
+      <input type="number" className="input" placeholder="e.g. 2026"
+        {...register('graduation_year', {
+          required: 'Graduation year is required',
+          valueAsNumber: true,
+          min: { value: 2020, message: 'Enter a valid graduation year' },
+          max: { value: 2035, message: 'Enter a valid graduation year' },
+        })} />
+    </Field>
+    <Field label="City" required error={errors.candidate_city?.message}>
+      <input className="input" placeholder="e.g. Mumbai"
+        {...register('candidate_city', {
+          required: 'City is required',
+        })} />
+    </Field>
+    <Field label="State" required error={errors.candidate_state?.message}>
+      <input className="input" placeholder="e.g. Maharashtra"
+        {...register('candidate_state', {
+          required: 'State is required',
+        })} />
+    </Field>
+  </div>
+</SectionCard>
 
         {/* f: Candidate & Role second */}
         <SectionCard title="Candidate & Role Details">
@@ -250,15 +273,16 @@ export default function InitiateIntern() {
       {!errors.end_date && <p className="text-xs text-slate-400 mt-1"></p>}
     </Field>
 
-    <Field label="Stipend Amount (₹/month)" error={errors.stipend_amount?.message}>
-      <input
-        type="number" className="input"
-        placeholder="Enter amount or pick template below"
-        {...register('stipend_amount', {
-          min: { value: 0, message: 'Stipend cannot be negative' },
-          max: { value: 100000, message: 'Stipend seems too high, please verify' }
-        })}
-      />
+   <Field label="Stipend Amount (₹/month)" required error={errors.stipend_amount?.message}>
+  <input
+    type="number" className="input"
+    placeholder="Enter amount"
+    {...register('stipend_amount', {
+      required: 'Stipend amount is required',
+      min: { value: 0, message: 'Stipend cannot be negative' },
+      max: { value: 100000, message: 'Stipend seems too high, please verify' }
+    })}
+  />
       {/* {(masters.stipend_templates || []).length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {(masters.stipend_templates || []).map(t => (
