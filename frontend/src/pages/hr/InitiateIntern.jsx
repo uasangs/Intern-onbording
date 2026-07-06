@@ -17,6 +17,10 @@ export default function InitiateIntern() {
   const [managers, setManagers] = useState([])
   const [masters, setMasters] = useState(DEFAULT_MASTERS)
   const [daysBeforeEnd, setDaysBeforeEnd] = useState(7)
+  const onlyDigits = e => { if (!/[\d]/.test(e.key) && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault() }
+  const onlyLetters = e => { if (!/[a-zA-Z\s]/.test(e.key) && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault() }
+  const maxLen = n => e => { if (e.target.value.length >= n && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault() }
+  const combine = (...fns) => e => fns.forEach(fn => fn(e))
 
   useEffect(() => {
     fetchMasters().then(setMasters)
