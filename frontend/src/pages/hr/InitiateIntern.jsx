@@ -237,7 +237,7 @@ export default function InitiateIntern() {
         minDate={new Date()}
         selected={watchStartDate ? new Date(watchStartDate) : null}
         onChange={date => {
-          const val = date ? date.toISOString().split('T')[0] : ''
+          const val = date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : ''
           setValue('start_date', val, { shouldValidate: true })
           trigger('end_date')
           trigger('review_due_date')
@@ -259,7 +259,7 @@ export default function InitiateIntern() {
         minDate={watchStartDate ? new Date(watchStartDate) : new Date()}
         selected={watchEndDate ? new Date(watchEndDate) : null}
         onChange={date => {
-          const val = date ? date.toISOString().split('T')[0] : ''
+          const val = date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : ''
           setValue('end_date', val, { shouldValidate: true })
           trigger('review_due_date')
         }}
