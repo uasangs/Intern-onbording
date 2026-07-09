@@ -12,6 +12,7 @@ from reportlab.platypus import (
 )
 
 from app.core.config import settings
+import subprocess
 
 UPLOAD_DIR    = settings.UPLOAD_DIR
 TEMPLATES_DIR = os.path.join(
