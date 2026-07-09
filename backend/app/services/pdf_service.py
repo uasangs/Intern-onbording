@@ -457,8 +457,7 @@ async def generate_certificate_pdf(record, payload) -> bytes:
     start_s     = _cert_fmt_long(record.start_date)
     end_s       = _cert_fmt_long(record.end_date)
     issue_date  = payload.issue_date
-    issue_s     = issue_date.strftime("%B") + " " + str(issue_date.day) + ", " + str(issue_date.year)
-
+    issue_s = f"{_cert_ordinal(issue_date.day)} {issue_date.strftime('%B')} {issue_date.year}"
     hr_name, hr_div = _get_hr_signatory(record)
 
     MONTHS = ["January","February","March","April","May","June",
@@ -539,18 +538,22 @@ async def generate_certificate_pdf(record, payload) -> bytes:
     pdf_path = docx_path.replace('.docx', '.pdf')
 
     try:
-        import subprocess
-        result = subprocess.run([
-            'libreoffice', '--headless', '--convert-to', 'pdf',
-            '--outdir', os.path.dirname(pdf_path), docx_path
-        ], capture_output=True, timeout=60)
-        if result.returncode == 0 and os.path.exists(pdf_path):
+        import platform
+        if platform.system() == 'Windows':
+            from docx2pdf import convert
+            convert(docx_path, pdf_path)
+        else:
+            result = subprocess.run([
+                'libreoffice', '--headless', '--convert-to', 'pdf',
+                '--outdir', os.path.dirname(pdf_path), docx_path
+            ], capture_output=True, timeout=60)
+        if os.path.exists(pdf_path):
             with open(pdf_path, 'rb') as f:
                 return f.read()
     finally:
         if os.path.exists(docx_path):
             os.unlink(docx_path)
-        if os.path.exists(pdf_path) and os.path.exists(pdf_path):
+        if os.path.exists(pdf_path):
             os.unlink(pdf_path)
 
     # Fallback: return docx bytes (if MS Word not available)

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 
+
 export default function InitiateIntern() {
   const { register, handleSubmit, setValue, watch, trigger, formState: { errors, isSubmitting } } = useForm({
     defaultValues: { stipend_amount: 7000, location: 'MBDD' },

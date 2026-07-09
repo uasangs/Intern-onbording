@@ -6,6 +6,8 @@ import { CheckCircle, FileText, Send, Award, Monitor, Mail, CreditCard, Star, Ed
 import PortalLinkManager from '../../components/ui/PortalLinkManager'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 
 // Absolute URL for PDF viewer open-in-new-tab
 const fileDownloadUrl = (path) => path ? `http://localhost:8000${path}` : null
@@ -915,16 +917,24 @@ const currentIdx = statusMapping[intern.status] ?? 0
                   </select>
                 </div>
                 <div>
-                  <label className="label">Issue Date <span className="text-red-500">*</span></label>
-                  <input type="date" className={`input ${certErrors.issue_date ? 'border-red-400' : ''}`}
-                    min={intern?.end_date || undefined}
-                    value={certData.issue_date}
-                    onChange={e => { setCertData(p => ({...p, issue_date: e.target.value})); setCertErrors(p => ({...p, issue_date: ''})) }} />
-                  {certErrors.issue_date
-                    ? <p className="text-xs text-red-600 mt-1">{certErrors.issue_date}</p>
-                    : <p className="text-xs text-slate-400 mt-1">Cannot be before internship end date ({intern?.end_date || '—'})</p>
-                  }
-                </div>
+  <label className="label">Issue Date <span className="text-red-500">*</span></label>
+  <DatePicker
+    className={`input w-full ${certErrors.issue_date ? 'border-red-400' : ''}`}
+    dateFormat="dd/MM/yyyy"
+    minDate={intern?.end_date ? new Date(intern.end_date + 'T00:00:00') : null}
+    selected={certData.issue_date ? new Date(certData.issue_date + 'T00:00:00') : null}
+    onChange={date => {
+      const val = date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : ''
+      setCertData(p => ({...p, issue_date: val}))
+      setCertErrors(p => ({...p, issue_date: ''}))
+    }}
+    placeholderText="DD/MM/YYYY"
+  />
+  {certErrors.issue_date
+    ? <p className="text-xs text-red-600 mt-1">{certErrors.issue_date}</p>
+    : <p className="text-xs text-slate-400 mt-1">Cannot be before internship end date ({intern?.end_date || '—'})</p>
+  }
+</div>
               </div>
               <button onClick={generateCert} className="btn-primary flex items-center gap-2">
                 <Award className="w-4 h-4" />Generate Certificate
