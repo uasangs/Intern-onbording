@@ -544,10 +544,13 @@ async def generate_certificate_pdf(record, payload) -> bytes:
             from docx2pdf import convert
             convert(docx_path, pdf_path)
         else:
+            env = os.environ.copy()
+            env['HOME'] = '/tmp/libreoffice-home'
+            os.makedirs('/tmp/libreoffice-home', exist_ok=True)
             result = subprocess.run([
-                'libreoffice', '--headless', '--convert-to', 'pdf',
-                '--outdir', os.path.dirname(pdf_path), docx_path
-            ], capture_output=True, timeout=60)
+               'libreoffice', '--headless', '--convert-to', 'pdf',
+               '--outdir', os.path.dirname(pdf_path), docx_path
+            ], capture_output=True, timeout=60, env=env)
         if os.path.exists(pdf_path):
             with open(pdf_path, 'rb') as f:
                 return f.read()
