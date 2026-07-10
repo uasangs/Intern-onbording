@@ -43,7 +43,10 @@ export const authApi = {
 // ── HR ──────────────────────────────────────────────────
 export const hrApi = {
   downloadOffer: (internId) => api.get(`/hr/offer-letter/${internId}/download`, { responseType: 'arraybuffer' }),
-  downloadCertificate: (internId) => api.get(`/hr/certificate/${internId}/download`, { responseType: 'arraybuffer' }),
+  downloadCertificate: (internId) => api.get(`/hr/certificate/${internId}/download`, { 
+  responseType: 'arraybuffer',
+  headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+}),
   downloadDocument: (docId) => api.get(`/hr/document/${docId}/download`, { responseType: 'arraybuffer' }),
   dashboard: () => api.get('/hr/dashboard'),
   listInterns: (params) => api.get('/hr/interns', { params }),
